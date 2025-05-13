@@ -26,9 +26,10 @@ public:
     // Move operations
     GPUBuffer(GPUBuffer&& other) noexcept
         : m_id(other.m_id), m_capacity(other.m_capacity),
-          m_mapped(other.m_mapped), m_fence(other.m_fence) {
+          m_mapped(other.m_mapped), m_fence(other.m_fence), m_size(other.m_size) {
         other.m_id = 0;
         other.m_capacity = 0;
+        other.m_size = 0;
         other.m_mapped = nullptr;
         other.m_fence = nullptr;
     }
@@ -36,7 +37,7 @@ public:
     GPUBuffer& operator=(GPUBuffer&& other) noexcept {
         if (this != &other) {
             this->~GPUBuffer();
-            new (this) GPUBuffer(std::move(other));
+            new(this) GPUBuffer(std::move(other));
         }
         return *this;
     }
@@ -44,9 +45,9 @@ public:
     void bind(GLenum target = GL_ARRAY_BUFFER) const {
         glBindBuffer(target, m_id);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     }
 
     void write(const void* data, size_t size, size_t offset = 0) {
@@ -57,6 +58,7 @@ public:
 
         waitSync();
         memcpy(static_cast<char*>(m_mapped) + offset, data, size);
+        m_size = size;
         glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, size);
     }
 
@@ -70,10 +72,10 @@ public:
         glGenBuffers(1, &newId);
         glBindBuffer(GL_ARRAY_BUFFER, newId);
         glBufferStorage(GL_ARRAY_BUFFER, newCapacity, nullptr,
-                       GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
+                        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_DYNAMIC_STORAGE_BIT);
 
         void* newMapped = glMapBufferRange(GL_ARRAY_BUFFER, 0, newCapacity,
-                                         GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
+                                           GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
 
         if (m_id) {
             glDeleteBuffers(1, &m_id);
@@ -91,6 +93,7 @@ public:
 
     GLuint id() const { return m_id; }
     size_t capacity() const { return m_capacity; }
+    size_t size() const { return m_size; }
     void* mappedPtr() const { return m_mapped; }
 
 private:
@@ -110,6 +113,7 @@ private:
 
     GLuint m_id = 0;
     size_t m_capacity = 0;
+    size_t m_size = 0;
     void* m_mapped = nullptr;
     GLsync m_fence = nullptr;
 };

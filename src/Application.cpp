@@ -47,7 +47,7 @@ void Application::Run() {
 
         GLuint64 elapsedTime = 0;
         glGetQueryObjectui64v(queryID, GL_QUERY_RESULT, &elapsedTime);
-        debugRenderer->Render(elapsedTime/1000000.0f, render::screenWidth, render::screenHeight);
+        debugRenderer->Render(elapsedTime / 1000000.0f, render::screenWidth, render::screenHeight);
 
         SDL_GL_SwapWindow(Window);
     }
@@ -86,7 +86,7 @@ void Application::Init() {
 
     GLContext = SDL_GL_CreateContext(Window);
     // Load OpenGL Functions (GLAD)
-    if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
         std::cerr << "Failed to initialize GLAD!" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -105,18 +105,27 @@ void Application::Init() {
 
     debugRenderer = new debug::DebugRenderer();
     textureManager.Init("../assets/textures/");
-    blockFaceRenderer.Init();
-    world.Init();
+    worldRenderer.init();
+
 
     std::cout << "OpenGL Vendor: " << glGetString(GL_VENDOR) << "\n"
-            << "Renderer: " << glGetString(GL_RENDERER) << "\n"
-            << "Version: " << glGetString(GL_VERSION) << std::endl;
+        << "Renderer: " << glGetString(GL_RENDERER) << "\n"
+        << "Version: " << glGetString(GL_VERSION) << std::endl;
 
     int profile;
     SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &profile);
+
+    GLint max_layers;
+    glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_layers);
+
+    GLint max_textures;
+    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &max_textures);
+
     std::cout << "Context Profile: "
-            << (profile == SDL_GL_CONTEXT_PROFILE_CORE ? "Core" : "Compatibility")
-            << std::endl;
+        << (profile == SDL_GL_CONTEXT_PROFILE_CORE ? "Core" : "Compatibility")
+        << "Max 2d texture array layers: " << max_layers << std::endl
+        << "Max texture units: " << max_textures << std::endl;
+
 
     camera.changeAspectRatio(float(render::screenWidth) / render::screenHeight);
 }
@@ -128,13 +137,15 @@ bool Application::HandleEvents() {
         if (event.type == SDL_EVENT_KEY_DOWN) {
             if (event.key.key == SDLK_ESCAPE) return false;
             if (event.key.key == SDLK_F5) debugRenderer->switchEnabled();
-        } else if (event.type == SDL_EVENT_QUIT) return false;
+        }
+        else if (event.type == SDL_EVENT_QUIT) return false;
         else if (event.type == SDL_EVENT_WINDOW_RESIZED) {
             render::screenWidth = event.window.data1;
             render::screenHeight = event.window.data2;
-            glViewport(0, 0, render::screenWidth,  render::screenHeight);
-            camera.changeAspectRatio(float(render::screenWidth) / float( render::screenHeight));
-        } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
+            glViewport(0, 0, render::screenWidth, render::screenHeight);
+            camera.changeAspectRatio(float(render::screenWidth) / float(render::screenHeight));
+        }
+        else if (event.type == SDL_EVENT_MOUSE_MOTION) {
             SDL_WarpMouseInWindow(Window, float(render::screenWidth) / 2, float(render::screenHeight) / 2);
         }
     }
@@ -144,7 +155,7 @@ bool Application::HandleEvents() {
 
 void Application::Render() {
     // Draw
-    world.Render(camera);
+    worldRenderer.render(world, camera);
 }
 
 Application::~Application() {

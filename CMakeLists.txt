@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(IndustrialHard)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG -g -O0")
-
+set(CMAKE_CXX_FLAGS "-static")
 IF(WIN32)
     set(SDL3_DIR "C:\\Users\\frama\\.vcpkg-clion\\vcpkg\\packages\\sdl3_x64-mingw-dynamic\\share\\sdl3")
     set(GLAD_DIR "C:\\Users\\frama\\.vcpkg-clion\\vcpkg\\packages\\glad_x64-mingw-dynamic\\share\\glad")
@@ -33,15 +32,12 @@ add_executable(${PROJECT_NAME} src/main.cpp
         src/game/world/Chunk.cpp
         src/game/data_loaders/TextureManager.cpp
         src/game/data_loaders/TextureManager.h
-        src/game/world/World.cpp
         src/game/world/World.h
         src/render/Plane.h
         src/render/renderers/block/FaceInstance.h
         src/game/data_loaders/globals.h
         src/game/world/EFacing.h
         src/render/renderers/block/CubeModel.h
-        src/render/renderers/block/BlockFaceRenderer.cpp
-        src/render/renderers/block/BlockFaceRenderer.h
         src/render/renderers/block/Vertex.h
         src/render/utils.h
         src/game/data_loaders/JsonStream.cpp
@@ -50,8 +46,10 @@ add_executable(${PROJECT_NAME} src/main.cpp
         src/render/globals.h
         src/render/buffers/MappedBufferPool.h
         src/render/buffers/GPUBuffer.h
-        src/render/renderers/block/ChunkMappedRenderer.cpp
-        src/render/renderers/block/ChunkMappedRenderer.h
+        src/render/renderers/world/WorldRenderer.cpp
+        src/render/renderers/world/WorldRenderer.h
+        src/render/renderers/world/ChunkMesher.cpp
+        src/render/renderers/world/ChunkMesher.h
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3 OpenGL::GL glad::glad glm::glm)

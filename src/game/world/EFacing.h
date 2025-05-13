@@ -10,4 +10,23 @@ enum Facing {
     DOWN = 5,
 };
 
+constexpr glm::vec3 getDirection(Facing f) {
+    switch (f) {
+        case WEST:
+            return {-1, 0, 0};
+            break;
+        case EAST:
+            return {1, 0, 0};
+            break;
+        case NORTH:
+            return {0, 0, -1};
+        case SOUTH:
+            return {0, 0, 1};
+        case UP:
+            return {0, 1, 1};
+        case DOWN:
+            return {0, -1, 0};
+    }
+}
+
 #endif //EFACING_H

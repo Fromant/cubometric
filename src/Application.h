@@ -6,7 +6,7 @@
 #include "game/world/World.h"
 #include "render/renderers/debug/DebugRenderer.h"
 #include "render/Camera.h"
-#include "render/renderers/block/BlockFaceRenderer.h"
+#include "render/renderers/world/WorldRenderer.h"
 
 class Application {
 public:
@@ -20,7 +20,7 @@ private:
     SDL_Window *Window{};
     SDL_GLContext GLContext{};
     debug::DebugRenderer *debugRenderer{};
-    render::BlockFaceRenderer blockFaceRenderer{};
+    WorldRenderer worldRenderer{};
     Camera camera;
     World world;
     void Init();

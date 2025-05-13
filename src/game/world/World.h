@@ -2,55 +2,48 @@
 #define WORLD_H
 
 #include <deque>
+#include <map>
 
 #include "Chunk.h"
-#include "../../render/Camera.h"
-#include "../../render/buffers/MappedBufferPool.h"
-#include "../../render/renderers/block/BlockFaceRenderer.h"
-#include "../../render/renderers/block/ChunkMappedRenderer.h"
+#include "../../render/renderers/world/ChunkMesher.h"
 
 
 class World {
-    static constexpr int VIEW_DISTANCE = 16; //internal const for now.
-
+public:
     //chunks[z][x], 2*VIEW_DISTANCE chunks in each side
     //Using deque because of O(1) index search, O(1) insertion in each side (like when moving frontwards or backwards)
-    std::deque<std::deque<Chunk> > chunks;
+    // std::deque<std::deque<Chunk>> chunks;
+    std::map<size_t, Chunk> chunks;
 
-    MappedBufferPool bufferPool{VIEW_DISTANCE * VIEW_DISTANCE * 4};
-
-    // render::BlockFaceRenderer renderer;
-    ChunkMappedRenderer renderer;
-
-public:
-    explicit World() {
-        //create 16x16 grid
-        chunks.resize(VIEW_DISTANCE * 2);
+    void updateChunk(int x, int y, int z, MappedBufferPool& pool) {
+        auto it = chunks.find(Chunk::getId(x, y, z));
+        if (it != chunks.end()) ChunkMesher::update(it->second, pool);
     }
 
-    size_t getChunkID(int z, int x) {
-        return ((z - VIEW_DISTANCE) << 16) + ((x - VIEW_DISTANCE));
+    Chunk& getChunk(int x, int y, int z) {
+        auto it = chunks.find(Chunk::getId(x, y, z));
+        if (it == chunks.end()) {
+            //cannot find, generate
+            return generateChunk(x, y, z);
+        }
+        return it->second;
     }
 
-    void Init() {
-        renderer.Init();
-        for (int z = 0; z < 2 * VIEW_DISTANCE; z++) {
-            for (int x = 0; x < 2 * VIEW_DISTANCE; x++) {
-                chunks[z].emplace_back(z - VIEW_DISTANCE, x - VIEW_DISTANCE);
-                bufferPool.createBuffer(getChunkID(z, x),
-                                        1000 * sizeof(FaceInstance));
-                chunks[z][x].updateMesh();
-
-                const auto &faces = chunks[z][x].getFaces();
-
-                auto *chunkBuffer = bufferPool.getBuffer(getChunkID(z, x));
-
-                chunkBuffer->write(faces.data(), faces.size() * sizeof(FaceInstance));
+private:
+    Chunk& generateChunk(int x, int y, int z) {
+        size_t id = Chunk::getId(x, y, z);
+        Chunk generated{x, y, z};
+        //sin wave
+        auto& blocks = generated.getBlocks();
+        for (int z1 = 0; z1 < Chunk::DEPTH; z1++) {
+            for (int x1 = 0; x1 < Chunk::WIDTH; x1++) {
+                const int y1 = int(abs(sin(double(x1 + z1)/M_PI_4))*16);
+                blocks[x1 + z1 * Chunk::DEPTH + y1 * Chunk::WIDTH * Chunk::DEPTH] = BlockType::DIRT;
             }
         }
-    }
 
-    int Render(const Camera &camera);
+        return chunks.emplace(id, generated).first->second;
+    }
 };
 
 
