@@ -37,7 +37,7 @@ private:
 
     float Yaw = -90.0f;
     float Pitch = 0.0f;
-    float Speed = 5.0f;
+    float Speed = 50.0f;
     float Sensitivity = 0.1f;
     float FOV = 90.0f;
     float aspectRatio{};

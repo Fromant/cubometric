@@ -1,6 +1,7 @@
 #include "WorldRenderer.h"
 
 #include <array>
+#include <set>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include "../../../../3rdparty/stb_image.h"
@@ -67,16 +68,20 @@ void WorldRenderer::init() {
 }
 
 void WorldRenderer::renderChunk(const glm::mat4& view, const glm::mat4& proj, GPUBuffer* buffer,
-                                int numVertices) const {
+                                int numVertices, const glm::ivec3& coords) const {
     if (!buffer || numVertices == 0) return;
 
     shader->use();
+    if (auto err = glGetError(); err!=GL_NO_ERROR) {
+        std::cout << __LINE__ << err << std::endl;
+    }
     buffer->bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
     shader->setSampler("atlasTexture", 0);
     shader->setMat4("view", view);
     shader->setMat4("projection", proj);
+    shader->setIVec3("chunkCoords", coords);
     //TODO cut start and end based on camera position (render only what's above and lower than camera based on looking)
     glDrawArrays(GL_TRIANGLES, 0, numVertices);
     // buffer->notifySubmitted();
@@ -91,23 +96,31 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     const auto& view = camera.getViewMatrix();
     const auto& projection = camera.getProjectionMatrix();
     const int y = 0;
+    std::set<size_t> rendered_chunks{};
     for (int z = camera.Position.z / 16 - VIEW_DISTANCE; z < camera.Position.z / 16 + VIEW_DISTANCE; z++) {
         for (int x = camera.Position.x / 16 - VIEW_DISTANCE; x < camera.Position.x / 16 + VIEW_DISTANCE; x++) {
             AABB chunkBox = getChunkBoundingBox(glm::vec3(x * Chunk::WIDTH, 0, z * Chunk::DEPTH));
             if (isBoxInFrustum(frustumPlanes, chunkBox)) {
                 Chunk& chunk = world.getChunk(x, y, z);
                 const size_t id = chunk.getId();
+                rendered_chunks.emplace(id);
                 if (!bufferPool.containsBuffer(id)) {
                     ChunkMesher::update(chunk, bufferPool);
                 }
                 auto* chunkBuffer = bufferPool.getBuffer(id);
-                renderChunk(view, projection, chunkBuffer, chunkBuffer->size() / sizeof(Vertex));
+                glm::ivec3 coords{chunk.xCoord, chunk.yCoord, chunk.zCoord};
+                renderChunk(view, projection, chunkBuffer, chunkBuffer->size() / sizeof(Vertex),coords);
                 chunksRendered++;
             }
         }
     }
 
-    // std::cout << chunksRendered << std::endl;
+    for (auto chunk : world.chunks) {
+        if (!rendered_chunks.contains(chunk.first)) {
+            rendered_chunks.erase(chunk.first);
+            bufferPool.deleteBuffer(chunk.first);
+        }
+    }
 
     glFlush();
 

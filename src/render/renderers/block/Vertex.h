@@ -1,12 +1,13 @@
 #ifndef VERTEX_H
 #define VERTEX_H
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-
 struct Vertex {
-    glm::vec3 position;
-    glm::vec2 texCoord;
+    //14 bits compacted: 1texX 1texY 5z 5y 5x
+    unsigned int data;
+
+    Vertex(char x, char y, char z, int textureX, int textureY) {
+        data = (x & 0x1F) + ((y & 0x1F) << 5) + ((z & 0x1F) << 10) + ((textureX & 1) << 15) + ((textureY & 1) << 16);
+    }
 };
 
 #endif //VERTEX_H

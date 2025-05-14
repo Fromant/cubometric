@@ -29,11 +29,11 @@ void Application::Run() {
         glClearColor(0, 0, 0, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // Cap frame rate
-        if (deltaTime < TARGET_FRAME_TIME) {
-            SDL_Delay(TARGET_FRAME_TIME - deltaTime);
-            currentFrame = SDL_GetTicks(); // Update after delay
-            deltaTime = currentFrame - lastFrame;
-        }
+        // if (deltaTime < TARGET_FRAME_TIME) {
+        //     SDL_Delay(TARGET_FRAME_TIME - deltaTime);
+        //     currentFrame = SDL_GetTicks(); // Update after delay
+        //     deltaTime = currentFrame - lastFrame;
+        // }
 
         lastFrame = currentFrame;
 
@@ -118,14 +118,9 @@ void Application::Init() {
     GLint max_layers;
     glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_layers);
 
-    GLint max_textures;
-    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &max_textures);
-
     std::cout << "Context Profile: "
         << (profile == SDL_GL_CONTEXT_PROFILE_CORE ? "Core" : "Compatibility")
-        << "Max 2d texture array layers: " << max_layers << std::endl
-        << "Max texture units: " << max_textures << std::endl;
-
+        << "Max 2d texture array layers: " << max_layers << std::endl;
 
     camera.changeAspectRatio(float(render::screenWidth) / render::screenHeight);
 }

@@ -45,9 +45,7 @@ public:
     void bind(GLenum target = GL_ARRAY_BUFFER) const {
         glBindBuffer(target, m_id);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(unsigned int), (void*)0);
     }
 
     void write(const void* data, size_t size, size_t offset = 0) {

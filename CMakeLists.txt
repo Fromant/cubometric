@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(IndustrialHard)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-static")
 IF(WIN32)
     set(SDL3_DIR "C:\\Users\\frama\\.vcpkg-clion\\vcpkg\\packages\\sdl3_x64-mingw-dynamic\\share\\sdl3")

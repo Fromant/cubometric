@@ -13,6 +13,8 @@
 
 # Rendering
 - [ ] pre-save terrain level indices when meshing to then start rendering from them or to them. save mesh ordered from bottom to top
+- [x] Binary voxels
+- [ ] by-face rendering
 - [ ] Make a lot debug info nice looking and possible to easy add and delete.
 - [ ] Add font rendering (by pixel font, not ttf you silly)
 - [ ] Item renderer

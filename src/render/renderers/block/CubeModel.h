@@ -7,196 +7,88 @@
 #include "../../../game/data_loaders/TextureManager.h"
 
 class CubeModel {
-    static constexpr std::array<FaceInstance, 6> cubeFaces = {
-        FaceInstance{
-            //back face
-            std::array<Vertex, 6>{
-                Vertex{
-                    glm::vec3(0.0f, 0.0f, 1.0f),
-                    glm::vec2(0.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(1.0f, 0.0f, 1.0f),
-                    glm::vec2(1.0f, 0.0f),
-
-                },
-                Vertex{
-                    glm::vec3(1.0f, 1.0f, 1.0f),
-                    glm::vec2(1.0f, 1.0f),
-                },
-                Vertex{
-                    glm::vec3(1.0f, 1.0f, 1.0f),
-                    glm::vec2(1.0f, 1.0f),
-                },
-                Vertex{
-                    glm::vec3(0.0f, 1.0f, 1.0f),
-                    glm::vec2(0.0f, 1.0f),
-                },
-                Vertex{
-                    glm::vec3(0.0f, 0.0f, 1.0f),
-                    glm::vec2(0.0f, 0.0f)
+    static inline std::array<FaceInstance, 6> cubeFaces{
+            FaceInstance{
+                //back face
+                std::array<Vertex, 6>{
+                    Vertex{0, 0, 1, 0, 0},
+                    Vertex{1, 0, 1, 1, 0},
+                    Vertex{1, 1, 1, 1, 1},
+                    Vertex{1, 1, 1, 1, 1},
+                    Vertex{0, 1, 1, 0, 1},
+                    Vertex{0, 0, 1, 0, 0}
+                }
+            },
+            FaceInstance{
+                // Front face
+                std::array<Vertex, 6>{
+                    Vertex{1, 0, 0, 0, 0},
+                    Vertex{0, 0, 0, 1, 0},
+                    Vertex{0, 1, 0, 1, 1},
+                    Vertex{0, 1, 0, 1, 1},
+                    Vertex{1, 1, 0, 0, 1},
+                    Vertex{1, 0, 0, 0, 0}
+                }
+            },
+            FaceInstance{
+                // Left face
+                std::array<Vertex, 6>{
+                    Vertex{0, 0, 0, 0, 0},
+                    Vertex{0, 0, 1, 1, 0},
+                    Vertex{0, 1, 1, 1, 1},
+                    Vertex{0, 1, 1, 1, 1},
+                    Vertex{0, 1, 0, 0, 1},
+                    Vertex{0, 0, 0, 0, 0}
+                }
+            },
+            FaceInstance{
+                // Right face
+                std::array<Vertex, 6>{
+                    Vertex{1, 0, 1, 0, 0},
+                    Vertex{1, 0, 0, 1, 0},
+                    Vertex{1, 1, 0, 1, 1},
+                    Vertex{1, 1, 0, 1, 1},
+                    Vertex{1, 1, 1, 0, 1},
+                    Vertex{1, 0, 1, 0, 0}
+                }
+            },
+            FaceInstance{
+                // Top face
+                std::array<Vertex, 6>{
+                    Vertex{0, 1, 1, 0, 0},
+                    Vertex{1, 1, 1, 1, 0},
+                    Vertex{1, 1, 0, 1, 1},
+                    Vertex{1, 1, 0, 1, 1},
+                    Vertex{0, 1, 0, 0, 1},
+                    Vertex{0, 1, 1, 0, 0}
+                }
+            },
+            FaceInstance{
+                // Bottom face
+                std::array<Vertex, 6>{
+                    Vertex{0, 0, 0, 0, 0},
+                    Vertex{1, 0, 0, 1, 0},
+                    Vertex{1, 0, 1, 1, 1},
+                    Vertex{1, 0, 1, 1, 1},
+                    Vertex{0, 0, 1, 0, 1},
+                    Vertex{0, 0, 0, 0, 0}
                 }
             }
-        },
-        FaceInstance{
-            // Front face
-            std::array<Vertex, 6>{
-                Vertex{
-                    glm::vec3(1.0f, 0.0f, 0.0f),
-                    glm::vec2(0.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 0.0f, 0.0f),
-                    glm::vec2(1.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 1.0f, 0.0f),
-                    glm::vec2(1.0f, 1.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 1.0f, 0.0f),
-                    glm::vec2(1.0f, 1.0f)
-
-                },
-                Vertex{
-                    glm::vec3(1.0f, 1.0f, 0.0f),
-                    glm::vec2(0.0f, 1.0f)
-                },
-                Vertex{
-                    glm::vec3(1.0f, 0.0f, 0.0f),
-                    glm::vec2(0.0f, 0.0f)
-                }
-            }
-        },
-        FaceInstance{
-            // Left face
-            std::array<Vertex, 6>{
-                Vertex{
-                    glm::vec3(0.0f, 0.0f, 0.0f),
-                    glm::vec2(0.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 0.0f, 1.0f),
-                    glm::vec2(1.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 1.0f, 1.0f),
-                    glm::vec2(1.0f, 1.0f),
-
-                },
-                Vertex{
-                    glm::vec3(0.0f, 1.0f, 1.0f),
-                    glm::vec2(1.0f, 1.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 1.0f, 0.0f),
-                    glm::vec2(0.0f, 1.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 0.0f, 0.0f),
-                    glm::vec2(0.0f, 0.0f)
-                }
-            }
-        },
-        FaceInstance{
-            // Right face
-            std::array<Vertex, 6>{
-                Vertex{
-                    glm::vec3(1.0f, 0.0f, 1.0f),
-                    glm::vec2(0.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(1.0f, 0.0f, 0.0f),
-                    glm::vec2(1.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(1.0f, 1.0f, 0.0f),
-                    glm::vec2(1.0f, 1.0f),
-
-                },
-                Vertex{
-                    glm::vec3(1.0f, 1.0f, 0.0f),
-                    glm::vec2(1.0f, 1.0f)
-                },
-                Vertex{
-                    glm::vec3(1.0f, 1.0f, 1.0f),
-                    glm::vec2(0.0f, 1.0f)
-                },
-                Vertex{
-                    glm::vec3(1.0f, 0.0f, 1.0f),
-                    glm::vec2(0.0f, 0.0f)
-                }
-            }
-        },
-        FaceInstance{
-            // Top face
-            std::array<Vertex, 6>{
-                Vertex{
-                    glm::vec3(0.0f, 1.0f, 1.0f),
-                    glm::vec2(0.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(1.0f, 1.0f, 1.0f),
-                    glm::vec2(1.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(1.0f, 1.0f, 0.0f),
-                    glm::vec2(1.0f, 1.0f),
-
-                },
-                Vertex{
-                    glm::vec3(1.0f, 1.0f, 0.0f),
-                    glm::vec2(1.0f, 1.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 1.0f, 0.0f),
-                    glm::vec2(0.0f, 1.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 1.0f, 1.0f),
-                    glm::vec2(0.0f, 0.0f)
-                }
-            }
-        },
-        FaceInstance{
-            // Bottom face
-            std::array<Vertex, 6>{
-                Vertex{
-                    glm::vec3(0.0f, 0.0f, 0.0f),
-                    glm::vec2(0.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(1.0f, 0.0f, 0.0f),
-                    glm::vec2(1.0f, 0.0f)
-                },
-                Vertex{
-                    glm::vec3(1.0f, 0.0f, 1.0f),
-                    glm::vec2(1.0f, 1.0f),
-
-                },
-                Vertex{
-                    glm::vec3(1.0f, 0.0f, 1.0f),
-                    glm::vec2(1.0f, 1.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 0.0f, 1.0f),
-                    glm::vec2(0.0f, 1.0f)
-                },
-                Vertex{
-                    glm::vec3(0.0f, 0.0f, 0.0f),
-                    glm::vec2(0.0f, 0.0f)
-                }
-            }
-        }
-    };
+        };
 
 public:
-    static constexpr FaceInstance getFace(const Facing f, const glm::vec3 &pos, const glm::vec2 &uvMap) {
+    static FaceInstance getFace(const Facing f, const glm::vec3& pos, const glm::vec2& uvMap) {
         FaceInstance tr = cubeFaces[f];
 
-        for (auto &[position, texCoord]: tr.vertices) {
-            position += pos;
-            texCoord = texCoord * TextureManager::UV_STEP + uvMap;
+        for (auto& vertex : tr.vertices) {
+            auto& position = vertex.data;
+            // Keep local position; chunk offset is applied in shader
+            int x = (position & 0x1F) + pos.x;
+            int y = ((position >> 5) & 0x1F) + pos.y;
+            int z = ((position >> 10) & 0x1F) + pos.z;
+            // No addition of pos.x/pos.y/pos.z here
+            // Preserve texture bits (0x3000) and local position
+            position = (position & 0x18000) | x | (y << 5) | (z << 10);
         }
         return tr;
     }

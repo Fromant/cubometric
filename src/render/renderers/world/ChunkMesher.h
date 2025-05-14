@@ -12,10 +12,6 @@ public:
         buffer.reserve(1000);
         const auto& blocks = chunk.getBlocks();
 
-        const int xCoord = chunk.xCoord;
-        const int yCoord = chunk.yCoord;
-        const int zCoord = chunk.zCoord;
-
         for (int y = 0; y < Chunk::HEIGHT; y++) {
             for (int z = 0; z < Chunk::DEPTH; z++) {
                 for (int x = 0; x < Chunk::WIDTH; x++) {
@@ -23,8 +19,7 @@ public:
                     //not air, add to mesh
 
                     const auto& data = textureManager.getTextureInfo("../assets/textures/blocks/dirt.png");
-                    const glm::vec3 pos(x + xCoord * Chunk::WIDTH, y + yCoord * Chunk::HEIGHT,
-                                        z + zCoord * Chunk::DEPTH);
+                    const glm::vec3 pos(x, y, z);
 
                     //check z+ (west) (left)
                     if (z == (Chunk::DEPTH - 1) || blocks[x + (z + 1) * Chunk::DEPTH + y * Chunk::DEPTH * Chunk::WIDTH]
