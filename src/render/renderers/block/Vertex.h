@@ -2,7 +2,7 @@
 #define VERTEX_H
 
 struct Vertex {
-    //14 bits compacted: 1texX 1texY 5z 5y 5x
+    //17 bits compacted: 1texX 1texY 5z 5y 5x
     unsigned int data;
 
     Vertex(char x, char y, char z, int textureX, int textureY) {

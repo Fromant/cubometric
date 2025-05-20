@@ -1,10 +1,14 @@
 #include "WorldRenderer.h"
 
 #include <array>
-#include <set>
+#include <unordered_set>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+
+#include "ChunkMesher.h"
 #include "../../../../3rdparty/stb_image.h"
+
+#include "../block/FaceInstance.h"
 
 
 class Camera;
@@ -67,35 +71,35 @@ void WorldRenderer::init() {
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void WorldRenderer::renderChunkFacing(const glm::ivec3& coords, const glm::vec3& cameraCoords,
-                                      const Chunk& chunk, Facing f) {
-    auto* buffer = bufferPool.getBuffer(chunk.getId(f));
-
-    if (!buffer || buffer->size() == 0) return;
-
-    buffer->bind();
-    //TODO cut start and end based on camera position (render only what's above and lower than camera based on looking)
-    glDrawArrays(GL_TRIANGLES, 0, buffer->size() / sizeof(Vertex));
+void WorldRenderer::renderChunkFacing(const Chunk& chunk, Facing f) {
+    glDrawArrays(GL_TRIANGLES, chunk.faceOffsets[f] * sizeof(FaceInstance) / sizeof(Vertex),
+                 chunk.faceSizes[f] * sizeof(FaceInstance) / sizeof(Vertex));
 }
 
 void WorldRenderer::renderChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords,
                                 const Chunk& chunk) {
     shader->setIVec3("chunkCoords", coords);
 
+    auto* buffer = bufferPool.getBuffer(chunk.getId());
+
+    if (!buffer || buffer->size() == 0) return;
+
+    buffer->bind();
+
     if (coords.x * Chunk::WIDTH - cameraCoords.x < Chunk::WIDTH)
-        renderChunkFacing(coords, cameraCoords, chunk, SOUTH);
+        renderChunkFacing(chunk, SOUTH);
     if (cameraCoords.x - coords.x * Chunk::WIDTH < Chunk::WIDTH)
-        renderChunkFacing(coords, cameraCoords, chunk, NORTH);
+        renderChunkFacing(chunk, NORTH);
 
     if (coords.y * Chunk::HEIGHT - cameraCoords.y < Chunk::HEIGHT)
-        renderChunkFacing(coords, cameraCoords, chunk, UP);
+        renderChunkFacing(chunk, UP);
     if (cameraCoords.y - coords.y * Chunk::HEIGHT < Chunk::HEIGHT)
-        renderChunkFacing(coords, cameraCoords, chunk, DOWN);
+        renderChunkFacing(chunk, DOWN);
 
     if (coords.z * Chunk::DEPTH - cameraCoords.z < Chunk::DEPTH)
-        renderChunkFacing(coords, cameraCoords, chunk, WEST);
+        renderChunkFacing(chunk, WEST);
     if (cameraCoords.z - coords.z * Chunk::DEPTH < Chunk::DEPTH)
-        renderChunkFacing(coords, cameraCoords, chunk, EAST);
+        renderChunkFacing(chunk, EAST);
 
     // buffer->notifySubmitted();
 }
@@ -103,6 +107,8 @@ void WorldRenderer::renderChunk(const glm::ivec3& coords, const glm::vec3& camer
 int WorldRenderer::render(World& world, const Camera& camera) {
     const auto& view = camera.getViewMatrix();
     const auto& proj = camera.getProjectionMatrix();
+    if (renderWireframe) glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+    else glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 
     shader->use();
     glActiveTexture(GL_TEXTURE0);
@@ -117,18 +123,17 @@ int WorldRenderer::render(World& world, const Camera& camera) {
 
     int chunksRendered = 0;
 
-    std::set<size_t> rendered_chunks{};
-    // const int y = 0;
+    std::unordered_set<size_t> rendered_chunks{};
     for (int y = 0; y < 256 / 16; y++) {
         for (int z = camera.Position.z / 16 - VIEW_DISTANCE; z < camera.Position.z / 16 + VIEW_DISTANCE; z++) {
             for (int x = camera.Position.x / 16 - VIEW_DISTANCE; x < camera.Position.x / 16 + VIEW_DISTANCE; x++) {
                 AABB chunkBox = getChunkBoundingBox(glm::vec3(x * Chunk::WIDTH, y * Chunk::HEIGHT, z * Chunk::DEPTH));
                 if (isBoxInFrustum(frustumPlanes, chunkBox)) {
                     Chunk& chunk = world.getChunk(x, y, z);
-                    const size_t id = chunk.getId(Facing(0));
+                    const size_t id = chunk.getId();
                     rendered_chunks.emplace(id);
                     if (!bufferPool.containsBuffer(id)) {
-                        ChunkMesher::update(chunk, bufferPool);
+                        ChunkMesher::update(world, chunk, bufferPool);
                     }
                     glm::ivec3 coords{chunk.xCoord, chunk.yCoord, chunk.zCoord};
                     renderChunk(coords, camera.Position, chunk);

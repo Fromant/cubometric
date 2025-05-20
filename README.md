@@ -6,6 +6,12 @@ IndustrialHard would be about:
 
 Right now it's unplayable stone simulator written in CPP+OpenGL+GLAD+SDL+glm+...
 
+# Controls:
+- WASD movement
+- F5 to open frame time graph
+- F4 to enable wireframe rendering
+- B to switch mouse capturing
+- LMB to capture lock&capture mouse
 
 # Compile & run:
 - Make sure dependencies are installed (sdl3, opengl, glad, glm) (I recommend using `vcpkg install glm` and etc)

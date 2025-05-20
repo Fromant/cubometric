@@ -16,7 +16,6 @@ void Application::Run() {
     constexpr Uint64 TARGET_FRAME_TIME = 1000 / TARGET_FPS; // ms per frame
     constexpr bool CAP_FRAME_RATE = false;
 
-
     GLuint queryID;
     glGenQueries(1, &queryID);
 
@@ -94,8 +93,7 @@ void Application::Init() {
     }
 
     // Hide cursor
-    SDL_HideCursor();
-    SDL_SetWindowRelativeMouseMode(Window, true);
+    SDL_SetWindowRelativeMouseMode(Window, captureMouse);
 
     GLContext = SDL_GL_CreateContext(Window);
     // Load OpenGL Functions (GLAD)
@@ -112,9 +110,10 @@ void Application::Init() {
 
     // Enable depth testing and face culling
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    // not needed now as we render only front facing faces
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
+    // glFrontFace(GL_CCW);
 
     debugRenderer = new debug::DebugRenderer();
     textureManager.Init("../assets/textures/");
@@ -141,20 +140,29 @@ void Application::Init() {
 bool Application::HandleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        camera.HandleEvent(event);
-        if (event.type == SDL_EVENT_KEY_DOWN) {
-            if (event.key.key == SDLK_ESCAPE) return false;
-            if (event.key.key == SDLK_F5) debugRenderer->switchEnabled();
-        }
-        else if (event.type == SDL_EVENT_QUIT) return false;
-        else if (event.type == SDL_EVENT_WINDOW_RESIZED) {
+        if (event.type == SDL_EVENT_QUIT) return false;
+        if (event.type == SDL_EVENT_WINDOW_RESIZED) {
             render::screenWidth = event.window.data1;
             render::screenHeight = event.window.data2;
             glViewport(0, 0, render::screenWidth, render::screenHeight);
             camera.changeAspectRatio(float(render::screenWidth) / float(render::screenHeight));
         }
-        else if (event.type == SDL_EVENT_MOUSE_MOTION) {
-            SDL_WarpMouseInWindow(Window, float(render::screenWidth) / 2, float(render::screenHeight) / 2);
+        else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+            if (event.button.button == SDL_BUTTON_LEFT) {
+                captureMouse = true;
+                SDL_SetWindowRelativeMouseMode(Window, captureMouse);
+            }
+        }
+        if (!captureMouse) continue;
+        camera.HandleEvent(event, captureMouse);
+        if (event.type == SDL_EVENT_KEY_DOWN) {
+            if (event.key.key == SDLK_ESCAPE) return false;
+            if (event.key.key == SDLK_F5) debugRenderer->switchEnabled();
+            if (event.key.key == SDLK_F4) worldRenderer.switchWireframeRendering();
+            if (event.key.key == SDLK_B) {
+                captureMouse = !captureMouse;
+                SDL_SetWindowRelativeMouseMode(Window, captureMouse);
+            }
         }
     }
     return true;

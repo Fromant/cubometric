@@ -16,7 +16,7 @@ public:
 
     void Update(float deltaTime);
 
-    void HandleEvent(SDL_Event &event);
+    void HandleEvent(SDL_Event &event, bool lockMouse);
 
     const glm::mat4 &getViewMatrix() const;
 

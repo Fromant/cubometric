@@ -14,18 +14,21 @@ class WorldRenderer {
     GLuint VAO = 0;
     GLuint texture = 0;
 
+    bool renderWireframe = false;
+
     void renderChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords, const Chunk& chunk);
-    void renderChunkFacing(const glm::ivec3& coords, const glm::vec3& cameraCoords,
-                                const Chunk& chunk, Facing f);
+    static void renderChunkFacing(const Chunk& chunk, Facing f);
 
 public:
-    static constexpr int VIEW_DISTANCE = 12;
+    static constexpr int VIEW_DISTANCE = 8;
 
     int render(World& w, const Camera& c);
 
     void init();
 
     MappedBufferPool& getBufferPool() { return bufferPool; }
+
+    void switchWireframeRendering() { renderWireframe = !renderWireframe; }
 };
 
 #endif //WORLDRENDERER_H

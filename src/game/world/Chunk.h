@@ -19,6 +19,8 @@ public:
     int xCoord;
     int yCoord;
     int zCoord;
+    std::array<size_t, 6> faceSizes{};
+    std::array<size_t, 6> faceOffsets{};
 
     Chunk(int x, int y, int z) : xCoord(x), yCoord(y), zCoord(z) {
         // for (int i = 0; i < WIDTH * DEPTH; i++) {
@@ -28,15 +30,15 @@ public:
 
     Chunk() = delete;
 
-    size_t getId(Facing f) const {
-        return Chunk::getId(xCoord, yCoord, zCoord, f);
+    size_t getId() const {
+        return Chunk::getId(xCoord, yCoord, zCoord);
     }
 
-    static size_t getId(int xCoord, int yCoord, int zCoord, Facing f) {
-        return (size_t(xCoord & 0xFFFFFF) << 24) | (size_t(zCoord & 0xFFFFFF)) | (size_t(yCoord & 0x3F) << 48) | ((
-            size_t(f) & 0x3FF) << 54);
+    static size_t getId(int xCoord, int yCoord, int zCoord) {
+        return (size_t(xCoord & 0xFFFFFF) << 24) | (size_t(zCoord & 0xFFFFFF)) | (size_t(yCoord & 0x3F) << 48);
     }
 
+    const std::array<BlockType, DEPTH * WIDTH * HEIGHT>& getBlocks() const { return blocks; }
     std::array<BlockType, DEPTH * WIDTH * HEIGHT>& getBlocks() { return blocks; }
 };
 
