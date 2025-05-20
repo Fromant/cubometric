@@ -23,7 +23,7 @@
 - [ ] Item renderer
 
 # Debug
-- [ ] Add fps counter in console
+- [x] Add fps counter in console
 
 # Game
 

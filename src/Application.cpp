@@ -14,12 +14,17 @@ Application::Application(): camera(float(render::screenWidth) / float(render::sc
 void Application::Run() {
     constexpr Uint64 TARGET_FPS = 60;
     constexpr Uint64 TARGET_FRAME_TIME = 1000 / TARGET_FPS; // ms per frame
+    constexpr bool CAP_FRAME_RATE = false;
 
 
     GLuint queryID;
     glGenQueries(1, &queryID);
 
+    Uint64 frameCount = 0;
+
     Uint64 lastFrame = SDL_GetTicks();
+    constexpr int frame_avg_count = 60;
+    std::vector<Uint64> frametimes(frame_avg_count);
     while (true) {
         Uint64 currentFrame = SDL_GetTicks();
         //cpu frame time
@@ -29,11 +34,11 @@ void Application::Run() {
         glClearColor(0, 0, 0, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // Cap frame rate
-        // if (deltaTime < TARGET_FRAME_TIME) {
-        //     SDL_Delay(TARGET_FRAME_TIME - deltaTime);
-        //     currentFrame = SDL_GetTicks(); // Update after delay
-        //     deltaTime = currentFrame - lastFrame;
-        // }
+        if constexpr (CAP_FRAME_RATE && deltaTime < TARGET_FRAME_TIME) {
+            SDL_Delay(TARGET_FRAME_TIME - deltaTime);
+            currentFrame = SDL_GetTicks(); // Update after delay
+            deltaTime = currentFrame - lastFrame;
+        }
 
         lastFrame = currentFrame;
 
@@ -50,6 +55,14 @@ void Application::Run() {
         debugRenderer->Render(elapsedTime / 1000000.0f, render::screenWidth, render::screenHeight);
 
         SDL_GL_SwapWindow(Window);
+        frametimes.emplace_back(deltaTime);
+        frameCount++;
+        if (frameCount % frame_avg_count == 0) {
+            Uint64 sum = 0;
+            for (auto frameTime : frametimes) sum += frameTime;
+            std::cout << "Avg FPS: " << 1000.0 * frame_avg_count / sum << std::endl;
+            frametimes.clear();
+        }
     }
 }
 
