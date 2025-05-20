@@ -57,7 +57,8 @@ public:
         waitSync();
         memcpy(static_cast<char*>(m_mapped) + offset, data, size);
         m_size = size;
-        glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, size);
+        glBindBuffer(GL_ARRAY_BUFFER, m_id);
+        glFlushMappedBufferRange(GL_ARRAY_BUFFER, static_cast<long long>(offset), static_cast<long long>(size));
     }
 
     void resize(size_t newCapacity) {
@@ -104,8 +105,8 @@ private:
     }
 
     size_t calculateGrowth(size_t newSize) const {
-        const size_t minGrowth = 1024 * 1024; // 1MB minimum growth
-        size_t newCapacity = std::max(m_capacity + minGrowth, newSize);
+        const size_t minGrowth = 1024; // 1KB minimum growth
+        size_t newCapacity = std::max(m_capacity + minGrowth, newSize + 1);
         return newCapacity;
     }
 

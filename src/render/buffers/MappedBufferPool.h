@@ -1,7 +1,6 @@
 #ifndef MAPPEDBUFFERPOOL_H
 #define MAPPEDBUFFERPOOL_H
 
-#include <glm/glm.hpp>
 #include <unordered_map>
 
 #include "GPUBuffer.h"

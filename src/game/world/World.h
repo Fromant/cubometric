@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <map>
+#include <cmath>
 
 #include "Chunk.h"
 #include "../../render/renderers/world/ChunkMesher.h"
@@ -16,12 +17,12 @@ public:
     std::map<size_t, Chunk> chunks;
 
     void updateChunk(int x, int y, int z, MappedBufferPool& pool) {
-        auto it = chunks.find(Chunk::getId(x, y, z));
+        auto it = chunks.find(Chunk::getId(x, y, z, Facing(0)));
         if (it != chunks.end()) ChunkMesher::update(it->second, pool);
     }
 
     Chunk& getChunk(int x, int y, int z) {
-        auto it = chunks.find(Chunk::getId(x, y, z));
+        auto it = chunks.find(Chunk::getId(x, y, z, Facing(0)));
         if (it == chunks.end()) {
             //cannot find, generate
             return generateChunk(x, y, z);
@@ -31,13 +32,13 @@ public:
 
 private:
     Chunk& generateChunk(int x, int y, int z) {
-        size_t id = Chunk::getId(x, y, z);
+        size_t id = Chunk::getId(x, y, z, Facing(0));
         Chunk generated{x, y, z};
         //sin wave
         auto& blocks = generated.getBlocks();
         for (int z1 = 0; z1 < Chunk::DEPTH; z1++) {
             for (int x1 = 0; x1 < Chunk::WIDTH; x1++) {
-                const int y1 = int(abs(sin(double(x1 + z1)/M_PI_4))*16);
+                const int y1 = int((sin((double(x1 + z1) / Chunk::WIDTH * M_PI)) / 2 + 0.5) * (Chunk::HEIGHT - 1));
                 blocks[x1 + z1 * Chunk::DEPTH + y1 * Chunk::WIDTH * Chunk::DEPTH] = BlockType::DIRT;
             }
         }

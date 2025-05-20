@@ -14,11 +14,12 @@ class WorldRenderer {
     GLuint VAO = 0;
     GLuint texture = 0;
 
-    void renderChunk(const glm::mat4& view, const glm::mat4& proj, GPUBuffer* buffer,
-                     int numVertices, const glm::ivec3& coords) const;
+    void renderChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords, const Chunk& chunk);
+    void renderChunkFacing(const glm::ivec3& coords, const glm::vec3& cameraCoords,
+                                const Chunk& chunk, Facing f);
 
 public:
-    static constexpr int VIEW_DISTANCE = 24; //internal const for now. 12 is right what my pc can handle
+    static constexpr int VIEW_DISTANCE = 12;
 
     int render(World& w, const Camera& c);
 

@@ -67,50 +67,73 @@ void WorldRenderer::init() {
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void WorldRenderer::renderChunk(const glm::mat4& view, const glm::mat4& proj, GPUBuffer* buffer,
-                                int numVertices, const glm::ivec3& coords) const {
-    if (!buffer || numVertices == 0) return;
+void WorldRenderer::renderChunkFacing(const glm::ivec3& coords, const glm::vec3& cameraCoords,
+                                      const Chunk& chunk, Facing f) {
+    auto* buffer = bufferPool.getBuffer(chunk.getId(f));
+
+    if (!buffer || buffer->size() == 0) return;
+
+    buffer->bind();
+    //TODO cut start and end based on camera position (render only what's above and lower than camera based on looking)
+    glDrawArrays(GL_TRIANGLES, 0, buffer->size() / sizeof(Vertex));
+}
+
+void WorldRenderer::renderChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords,
+                                const Chunk& chunk) {
+    shader->setIVec3("chunkCoords", coords);
+
+    if (coords.x * Chunk::WIDTH - cameraCoords.x < Chunk::WIDTH)
+        renderChunkFacing(coords, cameraCoords, chunk, SOUTH);
+    if (cameraCoords.x - coords.x * Chunk::WIDTH < Chunk::WIDTH)
+        renderChunkFacing(coords, cameraCoords, chunk, NORTH);
+
+    if (coords.y * Chunk::HEIGHT - cameraCoords.y < Chunk::HEIGHT)
+        renderChunkFacing(coords, cameraCoords, chunk, UP);
+    if (cameraCoords.y - coords.y * Chunk::HEIGHT < Chunk::HEIGHT)
+        renderChunkFacing(coords, cameraCoords, chunk, DOWN);
+
+    if (coords.z * Chunk::DEPTH - cameraCoords.z < Chunk::DEPTH)
+        renderChunkFacing(coords, cameraCoords, chunk, WEST);
+    if (cameraCoords.z - coords.z * Chunk::DEPTH < Chunk::DEPTH)
+        renderChunkFacing(coords, cameraCoords, chunk, EAST);
+
+    // buffer->notifySubmitted();
+}
+
+int WorldRenderer::render(World& world, const Camera& camera) {
+    const auto& view = camera.getViewMatrix();
+    const auto& proj = camera.getProjectionMatrix();
 
     shader->use();
-    if (auto err = glGetError(); err!=GL_NO_ERROR) {
-        std::cout << __LINE__ << err << std::endl;
-    }
-    buffer->bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
     shader->setSampler("atlasTexture", 0);
     shader->setMat4("view", view);
     shader->setMat4("projection", proj);
-    shader->setIVec3("chunkCoords", coords);
-    //TODO cut start and end based on camera position (render only what's above and lower than camera based on looking)
-    glDrawArrays(GL_TRIANGLES, 0, numVertices);
-    // buffer->notifySubmitted();
-}
 
-int WorldRenderer::render(World& world, const Camera& camera) {
     glBindVertexArray(VAO);
+
     auto frustumPlanes = camera.getFrustumPlanes();
 
     int chunksRendered = 0;
 
-    const auto& view = camera.getViewMatrix();
-    const auto& projection = camera.getProjectionMatrix();
-    const int y = 0;
     std::set<size_t> rendered_chunks{};
-    for (int z = camera.Position.z / 16 - VIEW_DISTANCE; z < camera.Position.z / 16 + VIEW_DISTANCE; z++) {
-        for (int x = camera.Position.x / 16 - VIEW_DISTANCE; x < camera.Position.x / 16 + VIEW_DISTANCE; x++) {
-            AABB chunkBox = getChunkBoundingBox(glm::vec3(x * Chunk::WIDTH, 0, z * Chunk::DEPTH));
-            if (isBoxInFrustum(frustumPlanes, chunkBox)) {
-                Chunk& chunk = world.getChunk(x, y, z);
-                const size_t id = chunk.getId();
-                rendered_chunks.emplace(id);
-                if (!bufferPool.containsBuffer(id)) {
-                    ChunkMesher::update(chunk, bufferPool);
+    // const int y = 0;
+    for (int y = 0; y < 256 / 16; y++) {
+        for (int z = camera.Position.z / 16 - VIEW_DISTANCE; z < camera.Position.z / 16 + VIEW_DISTANCE; z++) {
+            for (int x = camera.Position.x / 16 - VIEW_DISTANCE; x < camera.Position.x / 16 + VIEW_DISTANCE; x++) {
+                AABB chunkBox = getChunkBoundingBox(glm::vec3(x * Chunk::WIDTH, y * Chunk::HEIGHT, z * Chunk::DEPTH));
+                if (isBoxInFrustum(frustumPlanes, chunkBox)) {
+                    Chunk& chunk = world.getChunk(x, y, z);
+                    const size_t id = chunk.getId(Facing(0));
+                    rendered_chunks.emplace(id);
+                    if (!bufferPool.containsBuffer(id)) {
+                        ChunkMesher::update(chunk, bufferPool);
+                    }
+                    glm::ivec3 coords{chunk.xCoord, chunk.yCoord, chunk.zCoord};
+                    renderChunk(coords, camera.Position, chunk);
+                    chunksRendered++;
                 }
-                auto* chunkBuffer = bufferPool.getBuffer(id);
-                glm::ivec3 coords{chunk.xCoord, chunk.yCoord, chunk.zCoord};
-                renderChunk(view, projection, chunkBuffer, chunkBuffer->size() / sizeof(Vertex),coords);
-                chunksRendered++;
             }
         }
     }

@@ -3,6 +3,7 @@ project(IndustrialHard)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-static")
+#set(CMAKE_CXX_FLAGS "-static -g -fno-omit-frame-pointer")
 IF(WIN32)
     set(SDL3_DIR "C:\\Users\\frama\\.vcpkg-clion\\vcpkg\\packages\\sdl3_x64-mingw-dynamic\\share\\sdl3")
     set(GLAD_DIR "C:\\Users\\frama\\.vcpkg-clion\\vcpkg\\packages\\glad_x64-mingw-dynamic\\share\\glad")

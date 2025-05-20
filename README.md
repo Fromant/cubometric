@@ -12,8 +12,12 @@ Right now it's unplayable stone simulator written in CPP+OpenGL+GLAD+SDL+glm+...
 - Build with cmake
 - Before running, make sure SDL3.dll is located inside build folder (Important!)
 - ??? Profit
+- If something off, try running application inside build folder
 
 # Dependencies:
 - OpenGL 4.4+
+- SDL 3.2.4
+- glad
+- glm
 
 

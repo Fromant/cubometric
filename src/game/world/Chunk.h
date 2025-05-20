@@ -4,6 +4,7 @@
 #include <array>
 
 #include "BlockType.h"
+#include "EFacing.h"
 
 class Chunk {
 public:
@@ -20,19 +21,20 @@ public:
     int zCoord;
 
     Chunk(int x, int y, int z) : xCoord(x), yCoord(y), zCoord(z) {
-        for (int i = 0; i < WIDTH * DEPTH; i++) {
-            blocks[i] = BlockType::DIRT;
-        }
+        // for (int i = 0; i < WIDTH * DEPTH; i++) {
+        //     blocks[i] = BlockType::DIRT;
+        // }
     };
 
     Chunk() = delete;
 
-    size_t getId() const {
-        return Chunk::getId(xCoord, yCoord, zCoord);
+    size_t getId(Facing f) const {
+        return Chunk::getId(xCoord, yCoord, zCoord, f);
     }
 
-    static size_t getId(int xCoord, int yCoord, int zCoord) {
-        return (size_t(xCoord & 0xFFFFFF) << 24) + (size_t(zCoord & 0xFFFFFF)) + (size_t(yCoord & 0x3F) << 48);
+    static size_t getId(int xCoord, int yCoord, int zCoord, Facing f) {
+        return (size_t(xCoord & 0xFFFFFF) << 24) | (size_t(zCoord & 0xFFFFFF)) | (size_t(yCoord & 0x3F) << 48) | ((
+            size_t(f) & 0x3FF) << 54);
     }
 
     std::array<BlockType, DEPTH * WIDTH * HEIGHT>& getBlocks() { return blocks; }

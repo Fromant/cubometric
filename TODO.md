@@ -12,12 +12,18 @@
 
 
 # Rendering
-- [ ] pre-save terrain level indices when meshing to then start rendering from them or to them. save mesh ordered from bottom to top
 - [x] Binary voxels
-- [ ] by-face rendering
+- [x] by-face rendering
+- [x] fix invalid value error
+- [ ] better world structuring
+- [ ] merge chunk facing buffers into one bigger buffer
+- [ ] 3d textures or texture arrays
 - [ ] Make a lot debug info nice looking and possible to easy add and delete.
 - [ ] Add font rendering (by pixel font, not ttf you silly)
 - [ ] Item renderer
+
+# Debug
+- [ ] Add fps counter in console
 
 # Game
 

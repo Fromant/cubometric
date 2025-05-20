@@ -1,5 +1,6 @@
 #ifndef EFACING_H
 #define EFACING_H
+#include <glm/vec3.hpp>
 
 enum Facing {
     WEST = 0,
