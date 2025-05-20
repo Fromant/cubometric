@@ -23,7 +23,7 @@ public:
                     if (blocks[x + z * Chunk::DEPTH + y * Chunk::WIDTH * Chunk::DEPTH] == BlockType::AIR) continue;
                     //not air, add to mesh
 
-                    const auto& data = textureManager.getTextureInfo("../assets/textures/blocks/dirt.png");
+                    const auto& data = textureManager.getTextureInfo("assets/textures/blocks/dirt.png");
                     const glm::vec3 pos(x, y, z);
 
                     //check z+ (west) (left)

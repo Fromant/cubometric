@@ -54,4 +54,11 @@ add_executable(${PROJECT_NAME} src/main.cpp
         src/render/renderers/world/ChunkMesher.h
 )
 
+add_custom_target(copy-runtime-files ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/shaders ${CMAKE_BINARY_DIR}/shaders
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/assets
+        DEPENDS ${MY_TARGET})
+
+add_dependencies(IndustrialHard copy-runtime-files)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3 OpenGL::GL glad::glad glm::glm)

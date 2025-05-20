@@ -9,7 +9,7 @@ namespace debug {
 
         std::vector<float> frametimes = std::vector<float>(60, 0);
 
-        const Shader graphShader{"../shaders/debug/vert.glsl","../shaders/debug/frag.glsl"};
+        const Shader graphShader{"shaders/debug/vert.glsl","shaders/debug/frag.glsl"};
 
         GraphRenderer graphRenderer{graphShader, -1,1,0.15, 0.1};
 

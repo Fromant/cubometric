@@ -116,7 +116,7 @@ void Application::Init() {
     // glFrontFace(GL_CCW);
 
     debugRenderer = new debug::DebugRenderer();
-    textureManager.Init("../assets/textures/");
+    textureManager.Init("assets/textures/");
     worldRenderer.init();
 
 

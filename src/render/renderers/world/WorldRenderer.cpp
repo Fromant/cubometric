@@ -48,7 +48,7 @@ AABB getChunkBoundingBox(const glm::vec3& chunkPosition) {
 }
 
 void WorldRenderer::init() {
-    shader = new Shader("../shaders/face/vert.glsl", "../shaders/face/frag.glsl");
+    shader = new Shader("shaders/face/vert.glsl", "shaders/face/frag.glsl");
 
     glGenVertexArrays(1, &VAO);
 
@@ -58,7 +58,7 @@ void WorldRenderer::init() {
     glGenTextures(1, &texture);
     int w, h, channels;
     stbi_set_flip_vertically_on_load(true);
-    auto image = stbi_load("../assets/textures/blocks/dirt.png", &w, &h, &channels, STBI_rgb_alpha);
+    auto image = stbi_load("assets/textures/blocks/dirt.png", &w, &h, &channels, STBI_rgb_alpha);
     glBindTexture(GL_TEXTURE_2D, texture);
     if (channels != 4) {
         std::cerr << "channels != 4" << std::endl;
@@ -86,19 +86,19 @@ void WorldRenderer::renderChunk(const glm::ivec3& coords, const glm::vec3& camer
 
     buffer->bind();
 
-    if (coords.x * Chunk::WIDTH - cameraCoords.x < Chunk::WIDTH)
+    if (coords.x * Chunk::WIDTH - static_cast<int>(cameraCoords.x) < Chunk::WIDTH)
         renderChunkFacing(chunk, SOUTH);
-    if (cameraCoords.x - coords.x * Chunk::WIDTH < Chunk::WIDTH)
+    if (static_cast<int>(cameraCoords.x) - coords.x * Chunk::WIDTH < Chunk::WIDTH)
         renderChunkFacing(chunk, NORTH);
 
-    if (coords.y * Chunk::HEIGHT - cameraCoords.y < Chunk::HEIGHT)
+    if (coords.y * Chunk::HEIGHT - static_cast<int>(cameraCoords.y) < Chunk::HEIGHT)
         renderChunkFacing(chunk, UP);
-    if (cameraCoords.y - coords.y * Chunk::HEIGHT < Chunk::HEIGHT)
+    if (static_cast<int>(cameraCoords.y) - coords.y * Chunk::HEIGHT < Chunk::HEIGHT)
         renderChunkFacing(chunk, DOWN);
 
-    if (coords.z * Chunk::DEPTH - cameraCoords.z < Chunk::DEPTH)
+    if (coords.z * Chunk::DEPTH - static_cast<int>(cameraCoords.z) < Chunk::DEPTH)
         renderChunkFacing(chunk, WEST);
-    if (cameraCoords.z - coords.z * Chunk::DEPTH < Chunk::DEPTH)
+    if (static_cast<int>(cameraCoords.z) - coords.z * Chunk::DEPTH < Chunk::DEPTH)
         renderChunkFacing(chunk, EAST);
 
     // buffer->notifySubmitted();
@@ -107,8 +107,10 @@ void WorldRenderer::renderChunk(const glm::ivec3& coords, const glm::vec3& camer
 int WorldRenderer::render(World& world, const Camera& camera) {
     const auto& view = camera.getViewMatrix();
     const auto& proj = camera.getProjectionMatrix();
-    if (renderWireframe) glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-    else glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+    if (renderWireframe)
+        glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+    else
+        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 
     shader->use();
     glActiveTexture(GL_TEXTURE0);
