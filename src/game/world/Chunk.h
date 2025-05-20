@@ -8,9 +8,9 @@
 
 class Chunk {
 public:
-    static constexpr int WIDTH = 16;
-    static constexpr int HEIGHT = 16;
-    static constexpr int DEPTH = 16;
+    static constexpr int WIDTH = 32;
+    static constexpr int HEIGHT = 32;
+    static constexpr int DEPTH = 32;
 
 private:
     std::array<BlockType, DEPTH * WIDTH * HEIGHT> blocks{}; //bare 16kb chunk data.

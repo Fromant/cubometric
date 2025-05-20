@@ -2,8 +2,6 @@
 
 - [x] Move to mappedbufferpool in world rendering
 - [x] Draw debug info (also redo debugDrawer to screenSpace coords `[-1; 1]`)
-- [ ] Chunks data structure redo (save meshes by sides, etc)
-- [ ] Smart mesh updating algorithm (only affected sides, also neighbours chunk matters)
 - [ ] Add blockstates
 - [ ] Block model loadings
 - [ ] Add items
@@ -18,9 +16,11 @@
 - [x] fix invalid value error
 - [x] merge chunk facing buffers into one bigger buffer
 - [x] debug Wireframe rendering
+- [x] Move to 32x32x32 chunks
 - [ ] better world structuring
 - [ ] switch texturing to texture arrays instead of textures
 - [ ] Make a lot debug info nice looking and possible to easy add and delete.
+- [ ] Add lightning
 - [ ] Add font rendering (by pixel font, not ttf you silly)
 - [ ] Item renderer
 

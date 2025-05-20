@@ -8,7 +8,7 @@
 struct FaceInstance {
     std::array<Vertex, 6> vertices;
 
-    FaceInstance() = default;
+    FaceInstance() = delete;
 
     constexpr explicit FaceInstance(const std::array<Vertex, 6> &vertices) : vertices(vertices) {
     }

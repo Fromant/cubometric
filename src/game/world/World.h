@@ -4,7 +4,6 @@
 #include <deque>
 #include <unordered_map>
 #include <cmath>
-#include <optional>
 
 #include "Chunk.h"
 
@@ -18,13 +17,14 @@ public:
     // std::deque<std::deque<std::array<Chunk, 16>>> chunks;
     std::unordered_map<size_t, Chunk> chunks;
 
-    Chunk& getChunk(int x, int y, int z) {
+    Chunk* getChunk(int x, int y, int z) {
+        if (y < 0 || y >= WORLD_HEIGHT / Chunk::HEIGHT) return nullptr;
         auto it = chunks.find(Chunk::getId(x, y, z));
         if (it == chunks.end()) {
             //cannot find, generate
-            return generateChunk(x, y, z);
+            return &generateChunk(x, y, z);
         }
-        return it->second;
+        return &it->second;
     }
 
     Chunk const* getChunk(int x, int y, int z) const {

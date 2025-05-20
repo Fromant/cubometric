@@ -13,7 +13,7 @@ class ChunkMesher {
     static inline std::vector<FaceInstance> total;
 
 public:
-    static void update(const World& world, Chunk& chunk, MappedBufferPool& pool) {
+    static void update(World& world, Chunk& chunk, MappedBufferPool& pool) {
         for (auto& b : buffer) b.clear();
         const auto& blocks = chunk.getBlocks();
 
@@ -24,7 +24,7 @@ public:
                     //not air, add to mesh
 
                     const auto& data = textureManager.getTextureInfo("assets/textures/blocks/dirt.png");
-                    const glm::vec3 pos(x, y, z);
+                    const glm::ivec3 pos(x, y, z);
 
                     //check z+ (west) (left)
                     if (z == Chunk::DEPTH - 1) {
