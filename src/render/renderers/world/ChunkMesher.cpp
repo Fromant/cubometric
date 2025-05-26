@@ -110,22 +110,18 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
         }
     }
 
-    size_t totalSize = 0;
+    size_t totalFaces = 0;
     for (int i = 0; i < 6; i++) {
-        chunk.faceOffsets[i] = totalSize;
-        totalSize += buffer[i].size();
-        chunk.faceSizes[i] = buffer[i].size();
+        chunk.faceOffsets[i] = totalFaces;
+        totalFaces += buffer[i].size();
+        chunk.faceCounts[i] = buffer[i].size();
     }
-    total.clear();
-    total.reserve(totalSize);
-    for (auto& b : buffer) {
-        total.insert(total.end(), b.begin(), b.end());
-    }
-
-
     const size_t chunkID = chunk.getId();
     auto* gpuBuffer = pool.getBuffer(chunkID);
     if (!gpuBuffer)
-        gpuBuffer = pool.createBuffer(chunkID, totalSize * sizeof(FaceInstance));
-    gpuBuffer->write(total.data(), totalSize * sizeof(FaceInstance));
+        gpuBuffer = pool.createBuffer(chunkID, totalFaces * sizeof(FaceInstance));
+    for (int i = 0; i < 6; i++) {
+        gpuBuffer->write(buffer[i].data(), buffer[i].size() * sizeof(FaceInstance),
+                         chunk.faceOffsets[i] * sizeof(FaceInstance));
+    }
 }

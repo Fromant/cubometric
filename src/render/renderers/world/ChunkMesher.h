@@ -10,7 +10,6 @@
 
 class ChunkMesher {
     static inline std::array<std::vector<FaceInstance>, 6> buffer{};
-    static inline std::vector<FaceInstance> total;
 
 public:
     static void update(World& world, Chunk& chunk, MappedBufferPool& pool);

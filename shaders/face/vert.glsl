@@ -9,7 +9,7 @@ const int CHUNK_SIZE = 32; // Adjust if your chunk size differs
 out vec2 TexCoord;
 
 void main() {
-    // Extract local position within the chunk (4 bits each)
+    // Extract local position within the chunk (6 bits each)
     int x = (aPos & 0x3F);
     int y = (aPos >> 6) & 0x3F;
     int z = (aPos >> 12) & 0x3F;

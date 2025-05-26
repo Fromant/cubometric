@@ -19,7 +19,7 @@ public:
     int xCoord;
     int yCoord;
     int zCoord;
-    std::array<size_t, 6> faceSizes{};
+    std::array<size_t, 6> faceCounts{};
     std::array<size_t, 6> faceOffsets{};
 
     Chunk(int x, int y, int z) : xCoord(x), yCoord(y), zCoord(z) {

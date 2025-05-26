@@ -20,7 +20,7 @@ class WorldRenderer {
     static void renderChunkFacing(const Chunk& chunk, Facing f);
 
 public:
-    static constexpr int VIEW_DISTANCE = 4;
+    static constexpr int VIEW_DISTANCE = 8;
 
     int render(World& w, const Camera& c);
 
