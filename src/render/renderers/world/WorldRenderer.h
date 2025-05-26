@@ -1,10 +1,11 @@
 #ifndef WORLDRENDERER_H
 #define WORLDRENDERER_H
 
-#include "../../../game/world/World.h"
-#include "../../buffers/MappedBufferPool.h"
-#include "../../utils/Shader.h"
-#include "../../Camera.h"
+#include "game/world/EFacing.h"
+#include "game/world/World.h"
+#include "render/buffers/MappedBufferPool.h"
+#include "render/utils/Shader.h"
+#include "render/Camera.h"
 
 class WorldRenderer {
     MappedBufferPool bufferPool{VIEW_DISTANCE * VIEW_DISTANCE * 4};

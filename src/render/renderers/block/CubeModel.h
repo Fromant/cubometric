@@ -1,10 +1,10 @@
 #ifndef CUBEMODEL_H
 #define CUBEMODEL_H
 #include <array>
+#include <glm/vec2.hpp>
 
 #include "FaceInstance.h"
-#include "../../../game/world/EFacing.h"
-#include "../../../game/data_loaders/TextureManager.h"
+#include "game/world/EFacing.h"
 
 class CubeModel {
     static inline std::array<FaceInstance, 6> cubeFaces{

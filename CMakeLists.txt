@@ -16,6 +16,11 @@ find_package(glad CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 
+include(FetchContent)
+
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 # Build executable
 add_executable(${PROJECT_NAME} src/main.cpp
         src/Application.cpp
@@ -42,8 +47,8 @@ add_executable(${PROJECT_NAME} src/main.cpp
         src/render/renderers/block/CubeModel.h
         src/render/renderers/block/Vertex.h
         src/render/utils.h
-        src/game/data_loaders/JsonStream.cpp
-        src/game/data_loaders/JsonStream.h
+        src/game/data_loaders/JsonLoader.cpp
+        src/game/data_loaders/JsonLoader.h
         src/render/Frustum.h
         src/render/globals.h
         src/render/buffers/MappedBufferPool.h
@@ -61,4 +66,7 @@ add_custom_target(copy-runtime-files ALL
 
 add_dependencies(IndustrialHard copy-runtime-files)
 
+target_include_directories(${PROJECT_NAME} PRIVATE "src" "3rdparty")
+
+target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3 OpenGL::GL glad::glad glm::glm)

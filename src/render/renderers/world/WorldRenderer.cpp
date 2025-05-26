@@ -6,9 +6,9 @@
 #include <glm/vec4.hpp>
 
 #include "ChunkMesher.h"
-#include "../../../../3rdparty/stb_image.h"
+#include <stb_image.h>
 
-#include "../block/FaceInstance.h"
+#include "render/renderers/block/FaceInstance.h"
 
 
 class Camera;

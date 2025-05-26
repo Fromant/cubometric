@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
-#include "../../utils/Shader.h"
+#include "render/utils/Shader.h"
 
 namespace debug {
     class GraphRenderer {

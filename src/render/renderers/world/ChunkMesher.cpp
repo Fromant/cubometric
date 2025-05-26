@@ -1,5 +1,9 @@
 #include "ChunkMesher.h"
 
+#include <glm/vec2.hpp>
+
+#include "game/data_loaders/globals.h"
+
 void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
     for (auto& b : buffer) b.clear();
     const auto& blocks = chunk.getBlocks();

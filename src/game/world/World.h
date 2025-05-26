@@ -2,10 +2,10 @@
 #define WORLD_H
 
 #include <deque>
+#include <math.h>
 #include <unordered_map>
 
 #include "Chunk.h"
-
 
 class World {
 public:
@@ -39,17 +39,17 @@ private:
         Chunk generated{x, y, z};
         auto& blocks = generated.getBlocks();
         //sin wave
-        // for (int z1 = 0; z1 < Chunk::DEPTH; z1++) {
-        //     for (int x1 = 0; x1 < Chunk::WIDTH; x1++) {
-        //         const int y1 = int((sin((double(x1 + z1) / Chunk::WIDTH * M_PI)) / 2 + 0.5) * (Chunk::HEIGHT - 1));
-        //         blocks[x1 + z1 * Chunk::DEPTH + y1 * Chunk::WIDTH * Chunk::DEPTH] = BlockType::DIRT;
-        //     }
-        // }
+        for (int z1 = 0; z1 < Chunk::DEPTH; z1++) {
+            for (int x1 = 0; x1 < Chunk::WIDTH; x1++) {
+                const int y1 = int((sin((double(x1 + z1) / Chunk::WIDTH * M_PI)) / 2 + 0.5) * (Chunk::HEIGHT - 1));
+                blocks[x1 + z1 * Chunk::DEPTH + y1 * Chunk::WIDTH * Chunk::DEPTH] = BlockType::DIRT;
+            }
+        }
 
         //full cube
-        for (int i = 0; i < Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH - 1; i++) {
-            blocks[i] = BlockType::DIRT;
-        }
+        // for (int i = 0; i < Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH - 1; i++) {
+        //     blocks[i] = BlockType::DIRT;
+        // }
 
         return chunks.emplace(id, generated).first->second;
     }

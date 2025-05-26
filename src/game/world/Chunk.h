@@ -4,7 +4,6 @@
 #include <array>
 
 #include "BlockType.h"
-#include "EFacing.h"
 
 class Chunk {
 public:

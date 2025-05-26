@@ -5,7 +5,7 @@
 #include <vector>
 #include <glm/ext/matrix_clip_space.hpp>
 
-#include "../../globals.h"
+#include "render/globals.h"
 
 namespace debug {
     GraphRenderer::GraphRenderer(const Shader &shader, float x, float y, float width, float height)
