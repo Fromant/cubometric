@@ -22,7 +22,7 @@ void Application::Run() {
     Uint64 frameCount = 0;
 
     Uint64 lastFrame = SDL_GetTicks();
-    constexpr int frame_avg_count = 60;
+    constexpr int frame_avg_count = 180;
     std::vector<Uint64> frametimes(frame_avg_count);
     while (true) {
         Uint64 currentFrame = SDL_GetTicks();
@@ -59,7 +59,8 @@ void Application::Run() {
         if (frameCount % frame_avg_count == 0) {
             Uint64 sum = 0;
             for (auto frameTime : frametimes) sum += frameTime;
-            std::cout << "Avg FPS: " << 1000.0 * frame_avg_count / sum << std::endl;
+            std::cout << "Avg FPS: " << 1000.0 * frame_avg_count / sum << "; Min: " <<
+                1000.0f / *std::ranges::max_element(frametimes) << std::endl;
             frametimes.clear();
         }
     }
