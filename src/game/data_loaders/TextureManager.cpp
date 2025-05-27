@@ -8,7 +8,7 @@
 #include "../../../3rdparty/stb_image.h"
 #include "render/utils.h"
 
-constexpr int LAYER_COUNT = 2040; //Opengl 4.5 provides at least that number of layers
+constexpr int LAYER_COUNT = 2048; //Opengl 4.5 provides at least that number of layers
 constexpr int MIPMAP_LEVELS = 4;
 constexpr int TEXTURE_WIDTH = 16;
 constexpr int TEXTURE_HEIGHT = 16;

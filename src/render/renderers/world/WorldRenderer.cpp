@@ -6,11 +6,9 @@
 #include <glm/vec4.hpp>
 
 #include "ChunkMesher.h"
-#include <stb_image.h>
 
 #include "game/data_loaders/globals.h"
 #include "render/renderers/block/CubeModel.h"
-#include "render/renderers/block/FaceInstance.h"
 
 
 class Camera;
@@ -49,17 +47,19 @@ AABB getChunkBoundingBox(const glm::vec3& chunkPosition) {
     return box;
 }
 
+
 void WorldRenderer::init() {
     shader = new Shader("shaders/face/vert.glsl", "shaders/face/frag.glsl");
 
     glGenVertexArrays(1, &VAO);
 
     glBindVertexArray(VAO);
+
+    glGenBuffers(1, &indirectBuffer);
 }
 
-void WorldRenderer::renderChunkFacing(const Chunk& chunk, Facing f) {
-    glDrawArrays(GL_TRIANGLES, chunk.faceOffsets[f] * sizeof(FaceInstance) / sizeof(Vertex),
-    chunk.faceCounts[f] * sizeof(FaceInstance) / sizeof(Vertex));
+void WorldRenderer::renderChunkFacing(const Chunk& chunk, Facing f, std::vector<DrawArraysIndirectCommand>& cmds) {
+    cmds.emplace_back(chunk.faceCounts[f] * 6, 1, chunk.faceOffsets[f] * 6, 0);
 }
 
 void WorldRenderer::renderChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords,
@@ -72,20 +72,28 @@ void WorldRenderer::renderChunk(const glm::ivec3& coords, const glm::vec3& camer
 
     shader->setIVec3("chunkCoords", coords);
 
+    std::vector<DrawArraysIndirectCommand> cmds;
+    cmds.reserve(4);
+
     if (coords.x * Chunk::WIDTH - static_cast<int>(cameraCoords.x) < Chunk::WIDTH)
-        renderChunkFacing(chunk, SOUTH);
+        renderChunkFacing(chunk, SOUTH, cmds);
     if (static_cast<int>(cameraCoords.x) - coords.x * Chunk::WIDTH < Chunk::WIDTH)
-        renderChunkFacing(chunk, NORTH);
+        renderChunkFacing(chunk, NORTH, cmds);
 
     if (coords.y * Chunk::HEIGHT - static_cast<int>(cameraCoords.y) < Chunk::HEIGHT)
-        renderChunkFacing(chunk, UP);
+        renderChunkFacing(chunk, UP, cmds);
     if (static_cast<int>(cameraCoords.y) - coords.y * Chunk::HEIGHT < Chunk::HEIGHT)
-        renderChunkFacing(chunk, DOWN);
+        renderChunkFacing(chunk, DOWN, cmds);
 
     if (coords.z * Chunk::DEPTH - static_cast<int>(cameraCoords.z) < Chunk::DEPTH)
-        renderChunkFacing(chunk, WEST);
+        renderChunkFacing(chunk, WEST, cmds);
     if (static_cast<int>(cameraCoords.z) - coords.z * Chunk::DEPTH < Chunk::DEPTH)
-        renderChunkFacing(chunk, EAST);
+        renderChunkFacing(chunk, EAST, cmds);
+
+
+    glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(DrawArraysIndirectCommand)*cmds.size(),cmds.data(),GL_DYNAMIC_DRAW);
+
+    glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, cmds.size(),0);
 
     // buffer->notifySubmitted();
 }
@@ -106,6 +114,7 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     shader->setMat4("projection", proj);
 
     glBindVertexArray(VAO);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
 
     auto frustumPlanes = camera.getFrustumPlanes();
 
@@ -146,4 +155,5 @@ int WorldRenderer::render(World& world, const Camera& camera) {
 
 WorldRenderer::~WorldRenderer() {
     glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &indirectBuffer);
 }
