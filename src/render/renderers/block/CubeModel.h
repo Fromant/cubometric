@@ -7,7 +7,7 @@
 #include "game/world/EFacing.h"
 
 class CubeModel {
-    static inline std::array<FaceInstance, 6> cubeFaces{
+    constexpr static std::array<FaceInstance, 6> cubeFaces{
             FaceInstance{
                 //back face
                 std::array<Vertex, 6>{
@@ -77,7 +77,7 @@ class CubeModel {
         };
 
 public:
-    static FaceInstance getFace(const Facing f, const glm::ivec3& pos, const glm::vec2& uvMap) {
+    static constexpr FaceInstance getFace(const Facing f, const glm::ivec3& pos, const int layer) {
         FaceInstance tr = cubeFaces[f];
 
         for (auto& vertex : tr.vertices) {
@@ -87,7 +87,7 @@ public:
             int z = vertex.getZ() + pos.z;
             // No addition of pos.x/pos.y/pos.z here
             // Preserve texture bits (0x3000) and local position
-            vertex = Vertex(x, y, z, vertex.getTexU(), vertex.getTexV());
+            vertex = Vertex(x, y, z, vertex.getTexU(), vertex.getTexV(), layer);
         }
         return tr;
     }

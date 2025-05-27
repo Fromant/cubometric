@@ -1,8 +1,8 @@
 #version 440 core
-in vec2 TexCoord;
+in vec3 TexCoord;
 out vec4 FragColor;
 
-uniform sampler2D atlasTexture;
+uniform sampler2DArray atlasTexture;
 
 void main() {
     // FragColor = vec4(TexCoord.x, TexCoord.y, 0.0, 1.0);

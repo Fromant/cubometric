@@ -8,21 +8,19 @@
 #include "render/Camera.h"
 
 class WorldRenderer {
+    constexpr static int VIEW_DISTANCE = 8;
     MappedBufferPool bufferPool{VIEW_DISTANCE * VIEW_DISTANCE * 4};
 
     Shader* shader = nullptr;
 
     GLuint VAO = 0;
-    GLuint texture = 0;
 
     bool renderWireframe = false;
 
     void renderChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords, const Chunk& chunk);
-    static void renderChunkFacing(const Chunk& chunk, Facing f);
+    void renderChunkFacing(const Chunk& chunk, Facing f);
 
 public:
-    static constexpr int VIEW_DISTANCE = 8;
-
     int render(World& w, const Camera& c);
 
     void init();
@@ -30,6 +28,8 @@ public:
     MappedBufferPool& getBufferPool() { return bufferPool; }
 
     void switchWireframeRendering() { renderWireframe = !renderWireframe; }
+
+    ~WorldRenderer();
 };
 
 #endif //WORLDRENDERER_H

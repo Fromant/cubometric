@@ -1,6 +1,6 @@
 #pragma once
+
 #include <algorithm>
-#include <iostream>
 #include <memory>
 #include <glad/glad.h>
 

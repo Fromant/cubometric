@@ -14,22 +14,21 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                 if (blocks[x + z * Chunk::DEPTH + y * Chunk::WIDTH * Chunk::DEPTH] == BlockType::AIR) continue;
                 //not air, add to mesh
 
-                const auto& data = textureManager.getTextureInfo("assets/textures/blocks/dirt.png");
-                const glm::ivec3 pos(x, y, z);
-
+                const int layer = textureManager.getTextureLayer("assets/textures/blocks/dirt.png");
+                const glm::ivec3 pos{x, y, z};
                 //check z+ (west) (left)
                 if (z == Chunk::DEPTH - 1) {
                     if (auto nextChunk = world.getChunk(chunk.xCoord, chunk.yCoord, chunk.zCoord + 1);
                         !nextChunk ||
                         nextChunk->getBlocks()[x + y * Chunk::DEPTH * Chunk::WIDTH] == BlockType::AIR) {
                         buffer[WEST].emplace_back(
-                            CubeModel::getFace(WEST, pos, glm::vec2(data.uMin, data.vMin)));
+                            CubeModel::getFace(WEST, pos, layer));
                     }
                 }
                 else if (blocks[x + (z + 1) * Chunk::DEPTH + y * Chunk::DEPTH * Chunk::WIDTH]
                     == BlockType::AIR) {
                     //if air, add side to mesh
-                    buffer[WEST].emplace_back(CubeModel::getFace(WEST, pos, glm::vec2(data.uMin, data.vMin)));
+                    buffer[WEST].emplace_back(CubeModel::getFace(WEST, pos, layer));
                 }
 
                 //check z- (east) (right)
@@ -39,13 +38,13 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                         nextChunk->getBlocks()[x + (Chunk::DEPTH - 1) * Chunk::WIDTH + y * Chunk::DEPTH *
                             Chunk::WIDTH] == BlockType::AIR) {
                         buffer[EAST].emplace_back(
-                            CubeModel::getFace(EAST, pos, glm::vec2(data.uMin, data.vMin)));
+                            CubeModel::getFace(EAST, pos, layer));
                     }
                 }
                 else if (blocks[x + (z - 1) * Chunk::DEPTH + y * Chunk::DEPTH * Chunk::WIDTH] ==
                     BlockType::AIR) {
                     //if air, add side to mesh
-                    buffer[EAST].emplace_back(CubeModel::getFace(EAST, pos, glm::vec2(data.uMin, data.vMin)));
+                    buffer[EAST].emplace_back(CubeModel::getFace(EAST, pos, layer));
                 }
 
                 //check x+ (south) (back)
@@ -55,13 +54,13 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                         nextChunk->getBlocks()[z * Chunk::WIDTH + y * Chunk::DEPTH *
                             Chunk::WIDTH] == BlockType::AIR) {
                         buffer[SOUTH].emplace_back(
-                            CubeModel::getFace(SOUTH, pos, glm::vec2(data.uMin, data.vMin)));
+                            CubeModel::getFace(SOUTH, pos, layer));
                     }
                 }
                 else if (blocks[x + 1 + z * Chunk::DEPTH + y * Chunk::DEPTH * Chunk::WIDTH] ==
                     BlockType::AIR) {
                     //if air, add side to mesh
-                    buffer[SOUTH].emplace_back(CubeModel::getFace(SOUTH, pos, glm::vec2(data.uMin, data.vMin)));
+                    buffer[SOUTH].emplace_back(CubeModel::getFace(SOUTH, pos, layer));
                 }
 
                 //check x- (north) (front)
@@ -71,13 +70,13 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                         nextChunk->getBlocks()[Chunk::WIDTH - 1 + z * Chunk::WIDTH + y * Chunk::DEPTH *
                             Chunk::WIDTH] == BlockType::AIR) {
                         buffer[NORTH].emplace_back(
-                            CubeModel::getFace(NORTH, pos, glm::vec2(data.uMin, data.vMin)));
+                            CubeModel::getFace(NORTH, pos, layer));
                     }
                 }
                 else if (blocks[x - 1 + z * Chunk::DEPTH + y * Chunk::DEPTH * Chunk::WIDTH] ==
                     BlockType::AIR) {
                     //if air, add side to mesh
-                    buffer[NORTH].emplace_back(CubeModel::getFace(NORTH, pos, glm::vec2(data.uMin, data.vMin)));
+                    buffer[NORTH].emplace_back(CubeModel::getFace(NORTH, pos, layer));
                 }
 
                 //check y+ (top)
@@ -86,13 +85,13 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                         !nextChunk ||
                         nextChunk->getBlocks()[x + z * Chunk::WIDTH] == BlockType::AIR) {
                         buffer[UP].emplace_back(
-                            CubeModel::getFace(UP, pos, glm::vec2(data.uMin, data.vMin)));
+                            CubeModel::getFace(UP, pos, layer));
                     }
                 }
                 else if (blocks[x + z * Chunk::DEPTH + (y + 1) * Chunk::DEPTH * Chunk::WIDTH]
                     == BlockType::AIR) {
                     //if air, add side to mesh
-                    buffer[UP].emplace_back(CubeModel::getFace(UP, pos, glm::vec2(data.uMin, data.vMin)));
+                    buffer[UP].emplace_back(CubeModel::getFace(UP, pos, layer));
                 }
 
                 //check y- (bottom)
@@ -102,13 +101,13 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                         nextChunk->getBlocks()[x + z * Chunk::WIDTH + (Chunk::HEIGHT - 1) * Chunk::WIDTH *
                             Chunk::DEPTH] == BlockType::AIR) {
                         buffer[DOWN].emplace_back(
-                            CubeModel::getFace(DOWN, pos, glm::vec2(data.uMin, data.vMin)));
+                            CubeModel::getFace(DOWN, pos, layer));
                     }
                 }
                 else if (blocks[x + z * Chunk::DEPTH + (y - 1) * Chunk::DEPTH * Chunk::WIDTH] ==
                     BlockType::AIR) {
                     //if air, add side to mesh
-                    buffer[DOWN].emplace_back(CubeModel::getFace(DOWN, pos, glm::vec2(data.uMin, data.vMin)));
+                    buffer[DOWN].emplace_back(CubeModel::getFace(DOWN, pos, layer));
                 }
             }
         }

@@ -6,13 +6,16 @@ struct Vertex {
     constexpr static int coordMask = (1 << coordShift) - 1;
     constexpr static int texShift = 1;
     constexpr static int texMask = (1 << texShift) - 1;
+    constexpr static int layerShift = 11;
+    constexpr static int layerMask = (1 << layerShift) - 1;
 
-    //17 bits compacted: 1texX 1texY 5z 5y 5x
+    //31 bits compacted: 11layer 1texX 1texY 6z 6y 6x
     unsigned int data;
 
-    Vertex(char x, char y, char z, int textureX, int textureY) {
+    constexpr Vertex(char x, char y, char z, int textureX, int textureY, int layer = 0) {
         data = (x & coordMask) | ((y & coordMask) << coordShift) | ((z & coordMask) << (2 * coordShift))
-            | ((textureX & texMask) << (3 * coordShift)) | ((textureY & texMask) << (3 * coordShift + texShift));
+            | ((textureX & texMask) << (3 * coordShift)) | ((textureY & texMask) << (3 * coordShift + texShift)) | (
+                (layer & layerMask) << (3 * coordShift + 2 * texShift));
     }
 
     unsigned int getX() const {
@@ -33,6 +36,10 @@ struct Vertex {
 
     unsigned int getTexV() const {
         return (data >> (3 * coordShift + texShift)) & texMask;
+    }
+
+    unsigned int getLayer() const {
+        return (data >> (3 * coordShift + 2 * texShift)) & layerMask;
     }
 };
 

@@ -8,6 +8,8 @@
 #include "ChunkMesher.h"
 #include <stb_image.h>
 
+#include "game/data_loaders/globals.h"
+#include "render/renderers/block/CubeModel.h"
 #include "render/renderers/block/FaceInstance.h"
 
 
@@ -53,38 +55,22 @@ void WorldRenderer::init() {
     glGenVertexArrays(1, &VAO);
 
     glBindVertexArray(VAO);
-
-    //only 1 texture lol
-    glGenTextures(1, &texture);
-    int w, h, channels;
-    stbi_set_flip_vertically_on_load(true);
-    auto image = stbi_load("assets/textures/blocks/dirt.png", &w, &h, &channels, STBI_rgb_alpha);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    if (channels != 4) {
-        std::cerr << "channels != 4" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-    stbi_image_free(image);
-    glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 void WorldRenderer::renderChunkFacing(const Chunk& chunk, Facing f) {
     glDrawArrays(GL_TRIANGLES, chunk.faceOffsets[f] * sizeof(FaceInstance) / sizeof(Vertex),
-                 chunk.faceCounts[f] * sizeof(FaceInstance) / sizeof(Vertex));
+    chunk.faceCounts[f] * sizeof(FaceInstance) / sizeof(Vertex));
 }
 
 void WorldRenderer::renderChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords,
                                 const Chunk& chunk) {
-    shader->setIVec3("chunkCoords", coords);
-
     auto* buffer = bufferPool.getBuffer(chunk.getId());
 
     if (!buffer || buffer->size() == 0) return;
 
     buffer->bind();
+
+    shader->setIVec3("chunkCoords", coords);
 
     if (coords.x * Chunk::WIDTH - static_cast<int>(cameraCoords.x) < Chunk::WIDTH)
         renderChunkFacing(chunk, SOUTH);
@@ -114,7 +100,7 @@ int WorldRenderer::render(World& world, const Camera& camera) {
 
     shader->use();
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureManager.getTextureArray());
     shader->setSampler("atlasTexture", 0);
     shader->setMat4("view", view);
     shader->setMat4("projection", proj);
@@ -158,78 +144,6 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     return chunksRendered;
 }
 
-// int WorldRenderer::render(World& world, const Camera& camera) {
-//     const auto& view = camera.getViewMatrix();
-//     const auto& proj = camera.getProjectionMatrix();
-//     if (renderWireframe)
-//         glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-//     else
-//         glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-//
-//     shader->use();
-//     glActiveTexture(GL_TEXTURE0);
-//     glBindTexture(GL_TEXTURE_2D, texture);
-//     shader->setSampler("atlasTexture", 0);
-//     shader->setMat4("view", view);
-//     shader->setMat4("projection", proj);
-//
-//     glBindVertexArray(VAO);
-//
-//     auto frustumPlanes = camera.getFrustumPlanes();
-//
-//     int chunksRendered = 0;
-//
-//     std::unordered_set<size_t> rendered_chunks{};
-//
-//     int yMin = glm::dot(camera.getDirection(), glm::vec3(0, 1, 0)) > 0 ? 0 : World::WORLD_HEIGHT / Chunk::HEIGHT - 1;
-//     int yMax = yMin == 0 ? World::WORLD_HEIGHT / Chunk::HEIGHT : -1;
-//     auto yInc = [yMin, yMax](int& y) { yMin > yMax ? y-- : y++; };
-//
-//     int zMin = glm::dot(camera.getDirection(), glm::vec3(0, 0, 1)) > 0
-//                    ? int(camera.Position.z) / Chunk::DEPTH - VIEW_DISTANCE
-//                    : int(camera.Position.z) / Chunk::DEPTH + VIEW_DISTANCE - 1;
-//     int zMax = zMin == int(camera.Position.z) / Chunk::DEPTH - VIEW_DISTANCE
-//                    ? int(camera.Position.z) / Chunk::DEPTH + VIEW_DISTANCE
-//                    : int(camera.Position.z) / Chunk::DEPTH - VIEW_DISTANCE - 1;
-//     auto zInc = [zMin, zMax](int& z) { zMin > zMax ? z-- : z++; };
-//
-//     int xMin = glm::dot(camera.getDirection(), glm::vec3(1, 0, 0)) > 0
-//                    ? int(camera.Position.x) / Chunk::WIDTH - VIEW_DISTANCE
-//                    : int(camera.Position.x) / Chunk::WIDTH + VIEW_DISTANCE - 1;
-//     int xMax = xMin == int(camera.Position.x) / Chunk::WIDTH - VIEW_DISTANCE
-//                    ? int(camera.Position.x) / Chunk::WIDTH + VIEW_DISTANCE
-//                    : int(camera.Position.x) / Chunk::WIDTH - VIEW_DISTANCE - 1;
-//     auto xInc = [xMin, xMax](int& x) { xMin > xMax ? x-- : x++; };
-//
-//
-//     for (int y = yMin; y != yMax; yInc(y)) {
-//         for (int z = zMin; z != zMax; zInc(z)) {
-//             for (int x = xMin; x != xMax; xInc(x)) {
-//                 AABB chunkBox = getChunkBoundingBox(
-//                     glm::vec3(x * Chunk::WIDTH, y * Chunk::HEIGHT, z * Chunk::DEPTH));
-//                 if (isBoxInFrustum(frustumPlanes, chunkBox)) {
-//                     Chunk& chunk = *world.getChunk(x, y, z);
-//                     const size_t id = chunk.getId();
-//                     rendered_chunks.emplace(id);
-//                     if (!bufferPool.containsBuffer(id)) {
-//                         ChunkMesher::update(world, chunk, bufferPool);
-//                     }
-//                     glm::ivec3 coords{chunk.xCoord, chunk.yCoord, chunk.zCoord};
-//                     renderChunk(coords, camera.Position, chunk);
-//                     chunksRendered++;
-//                 }
-//             }
-//         }
-//     }
-//
-//     for (auto chunk : world.chunks) {
-//         if (!rendered_chunks.contains(chunk.first)) {
-//             rendered_chunks.erase(chunk.first);
-//             bufferPool.deleteBuffer(chunk.first);
-//         }
-//     }
-//
-//     // glFlush();
-//
-//     return chunksRendered;
-// }
+WorldRenderer::~WorldRenderer() {
+    glDeleteVertexArrays(1, &VAO);
+}
