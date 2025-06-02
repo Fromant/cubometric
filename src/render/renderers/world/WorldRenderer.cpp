@@ -56,6 +56,8 @@ void WorldRenderer::init() {
     glBindVertexArray(VAO);
 
     glGenBuffers(1, &indirectBuffer);
+
+    skyRenderer.init();
 }
 
 void WorldRenderer::renderChunkFacing(const Chunk& chunk, Facing f, std::vector<DrawArraysIndirectCommand>& cmds) {
@@ -91,9 +93,9 @@ void WorldRenderer::renderChunk(const glm::ivec3& coords, const glm::vec3& camer
         renderChunkFacing(chunk, EAST, cmds);
 
 
-    glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(DrawArraysIndirectCommand)*cmds.size(),cmds.data(),GL_DYNAMIC_DRAW);
+    glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(DrawArraysIndirectCommand) * cmds.size(), cmds.data(),GL_DYNAMIC_DRAW);
 
-    glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, cmds.size(),0);
+    glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, cmds.size(), 0);
 
     // buffer->notifySubmitted();
 }
@@ -101,6 +103,9 @@ void WorldRenderer::renderChunk(const glm::ivec3& coords, const glm::vec3& camer
 int WorldRenderer::render(World& world, const Camera& camera) {
     const auto& view = camera.getViewMatrix();
     const auto& proj = camera.getProjectionMatrix();
+
+    skyRenderer.renderSkybox(view, proj, camera.Position);
+
     if (renderWireframe)
         glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     else
@@ -109,7 +114,7 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     shader->use();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, textureManager.getTextureArray());
-    shader->setSampler("atlasTexture", 0);
+    // shader->setSampler("atlasTexture", 0);
     shader->setMat4("view", view);
     shader->setMat4("projection", proj);
 
@@ -154,6 +159,7 @@ int WorldRenderer::render(World& world, const Camera& camera) {
 }
 
 WorldRenderer::~WorldRenderer() {
+    delete shader;
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &indirectBuffer);
 }

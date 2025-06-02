@@ -57,6 +57,8 @@ add_executable(${PROJECT_NAME} src/main.cpp
         src/render/renderers/world/WorldRenderer.h
         src/render/renderers/world/ChunkMesher.cpp
         src/render/renderers/world/ChunkMesher.h
+        src/render/renderers/world/SkyRenderer.cpp
+        src/render/renderers/world/SkyRenderer.hpp
 )
 
 add_custom_target(copy-runtime-files ALL

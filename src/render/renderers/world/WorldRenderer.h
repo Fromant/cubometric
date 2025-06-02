@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "SkyRenderer.hpp"
 #include "game/world/EFacing.h"
 #include "game/world/World.h"
 #include "render/buffers/MappedBufferPool.h"
@@ -14,6 +15,7 @@ class WorldRenderer {
     MappedBufferPool bufferPool{VIEW_DISTANCE * VIEW_DISTANCE * 4};
 
     Shader* shader = nullptr;
+    SkyRenderer skyRenderer;
 
     GLuint VAO = 0;
     GLuint indirectBuffer = 0;
@@ -28,7 +30,7 @@ class WorldRenderer {
     } DrawArraysIndirectCommand;
 
     void renderChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords, const Chunk& chunk);
-    void renderChunkFacing(const Chunk& chunk, Facing f, std::vector<DrawArraysIndirectCommand>& cmds);
+    static void renderChunkFacing(const Chunk& chunk, Facing f, std::vector<DrawArraysIndirectCommand>& cmds);
 
 public:
     int render(World& w, const Camera& c);
