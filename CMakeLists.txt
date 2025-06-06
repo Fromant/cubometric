@@ -38,27 +38,20 @@ add_executable(${PROJECT_NAME} src/main.cpp
         src/game/world/Chunk.h
         src/game/world/Chunk.cpp
         src/game/data_loaders/TextureManager.cpp
-        src/game/data_loaders/TextureManager.h
-        src/game/world/World.h
-        src/render/Plane.h
-        src/render/renderers/block/FaceInstance.h
-        src/game/data_loaders/globals.h
-        src/game/world/EFacing.h
-        src/render/renderers/block/CubeModel.h
-        src/render/renderers/block/Vertex.h
-        src/render/utils.h
         src/game/data_loaders/JsonLoader.cpp
-        src/game/data_loaders/JsonLoader.h
-        src/render/Frustum.h
-        src/render/globals.h
-        src/render/buffers/MappedBufferPool.h
-        src/render/buffers/GPUBuffer.h
         src/render/renderers/world/WorldRenderer.cpp
-        src/render/renderers/world/WorldRenderer.h
         src/render/renderers/world/ChunkMesher.cpp
-        src/render/renderers/world/ChunkMesher.h
         src/render/renderers/world/SkyRenderer.cpp
-        src/render/renderers/world/SkyRenderer.hpp
+
+        src/game/world/ChunkData.cpp
+        src/game/world/ChunkData.hpp
+        src/utils/AABB.hpp
+
+        src/game/world/worldgen/WorldGenerator.cpp
+        src/game/world/worldgen/WorldGenerator.hpp
+        src/game/world/worldgen/noise/PerlinNoise.cpp
+        src/game/world/worldgen/noise/PerlinNoise.hpp
+        src/game/world/worldgen/noise/Interpolator.hpp
 )
 
 add_custom_target(copy-runtime-files ALL

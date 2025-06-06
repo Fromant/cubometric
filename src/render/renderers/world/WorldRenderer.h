@@ -1,5 +1,4 @@
-#ifndef WORLDRENDERER_H
-#define WORLDRENDERER_H
+#pragma once
 
 #include <vector>
 
@@ -11,7 +10,7 @@
 #include "render/Camera.h"
 
 class WorldRenderer {
-    constexpr static int VIEW_DISTANCE = 8;
+    constexpr static int VIEW_DISTANCE = 12;
     MappedBufferPool bufferPool{VIEW_DISTANCE * VIEW_DISTANCE * 4};
 
     Shader* shader = nullptr;
@@ -43,5 +42,3 @@ public:
 
     ~WorldRenderer();
 };
-
-#endif //WORLDRENDERER_H

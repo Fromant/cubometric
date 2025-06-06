@@ -45,7 +45,7 @@ public:
     void bind(GLenum target = GL_ARRAY_BUFFER) const {
         glBindBuffer(target, m_id);
         glEnableVertexAttribArray(0);
-        glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(unsigned int), (void*)0);
+        glVertexAttribIPointer(0, 2, GL_UNSIGNED_INT, 2 * sizeof(unsigned int), (void*)0);
     }
 
     void write(const void* data, size_t size, size_t offset = 0) {
@@ -105,7 +105,7 @@ private:
     }
 
     size_t calculateGrowth(size_t newSize) const {
-        const size_t minGrowth = 1024; // 1KB minimum growth
+        constexpr size_t minGrowth = 1024; // 1KB minimum growth
         size_t newCapacity = std::max(m_capacity + minGrowth, newSize + 1);
         return newCapacity;
     }

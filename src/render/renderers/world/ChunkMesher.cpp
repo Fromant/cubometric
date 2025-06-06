@@ -2,31 +2,29 @@
 
 #include <glm/vec2.hpp>
 
-#include "game/data_loaders/globals.h"
-
 void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
     for (auto& b : buffer) b.clear();
-    const auto& blocks = chunk.getBlocks();
+    const ChunkData& chunkData = chunk.getBlocks();
 
     for (int y = 0; y < Chunk::HEIGHT; y++) {
         for (int z = 0; z < Chunk::DEPTH; z++) {
             for (int x = 0; x < Chunk::WIDTH; x++) {
-                if (blocks[x + z * Chunk::DEPTH + y * Chunk::WIDTH * Chunk::DEPTH] == BlockType::AIR) continue;
+                if (!chunkData.containsBlock({x, y, z})) continue;
                 //not air, add to mesh
 
-                const int layer = textureManager.getTextureLayer("assets/textures/blocks/dirt.png");
+                // const int layer = textureManager.getTextureLayer("assets/textures/blocks/dirt.png");
+                const int layer = 0;
                 const glm::ivec3 pos{x, y, z};
                 //check z+ (west) (left)
                 if (z == Chunk::DEPTH - 1) {
                     if (auto nextChunk = world.getChunk(chunk.xCoord, chunk.yCoord, chunk.zCoord + 1);
                         !nextChunk ||
-                        nextChunk->getBlocks()[x + y * Chunk::DEPTH * Chunk::WIDTH] == BlockType::AIR) {
+                        !nextChunk->getBlocks().containsBlock({x, y, 0})) {
                         buffer[WEST].emplace_back(
                             CubeModel::getFace(WEST, pos, layer));
                     }
                 }
-                else if (blocks[x + (z + 1) * Chunk::DEPTH + y * Chunk::DEPTH * Chunk::WIDTH]
-                    == BlockType::AIR) {
+                else if (!chunkData.containsBlock({x, y, z + 1})) {
                     //if air, add side to mesh
                     buffer[WEST].emplace_back(CubeModel::getFace(WEST, pos, layer));
                 }
@@ -35,14 +33,12 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                 if (z == 0) {
                     if (auto nextChunk = world.getChunk(chunk.xCoord, chunk.yCoord, chunk.zCoord - 1);
                         !nextChunk ||
-                        nextChunk->getBlocks()[x + (Chunk::DEPTH - 1) * Chunk::WIDTH + y * Chunk::DEPTH *
-                            Chunk::WIDTH] == BlockType::AIR) {
+                        !nextChunk->getBlocks().containsBlock({x, y, Chunk::DEPTH - 1})) {
                         buffer[EAST].emplace_back(
                             CubeModel::getFace(EAST, pos, layer));
                     }
                 }
-                else if (blocks[x + (z - 1) * Chunk::DEPTH + y * Chunk::DEPTH * Chunk::WIDTH] ==
-                    BlockType::AIR) {
+                else if (!chunkData.containsBlock({x, y, z - 1})) {
                     //if air, add side to mesh
                     buffer[EAST].emplace_back(CubeModel::getFace(EAST, pos, layer));
                 }
@@ -51,14 +47,12 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                 if (x == (Chunk::WIDTH - 1)) {
                     if (auto nextChunk = world.getChunk(chunk.xCoord + 1, chunk.yCoord, chunk.zCoord);
                         !nextChunk ||
-                        nextChunk->getBlocks()[z * Chunk::WIDTH + y * Chunk::DEPTH *
-                            Chunk::WIDTH] == BlockType::AIR) {
+                        !nextChunk->getBlocks().containsBlock({0, y, z})) {
                         buffer[SOUTH].emplace_back(
                             CubeModel::getFace(SOUTH, pos, layer));
                     }
                 }
-                else if (blocks[x + 1 + z * Chunk::DEPTH + y * Chunk::DEPTH * Chunk::WIDTH] ==
-                    BlockType::AIR) {
+                else if (!chunkData.containsBlock({x + 1, y, z})) {
                     //if air, add side to mesh
                     buffer[SOUTH].emplace_back(CubeModel::getFace(SOUTH, pos, layer));
                 }
@@ -67,14 +61,12 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                 if (x == 0) {
                     if (auto nextChunk = world.getChunk(chunk.xCoord - 1, chunk.yCoord, chunk.zCoord);
                         !nextChunk ||
-                        nextChunk->getBlocks()[Chunk::WIDTH - 1 + z * Chunk::WIDTH + y * Chunk::DEPTH *
-                            Chunk::WIDTH] == BlockType::AIR) {
+                        !nextChunk->getBlocks().containsBlock({Chunk::WIDTH - 1, y, z})) {
                         buffer[NORTH].emplace_back(
                             CubeModel::getFace(NORTH, pos, layer));
                     }
                 }
-                else if (blocks[x - 1 + z * Chunk::DEPTH + y * Chunk::DEPTH * Chunk::WIDTH] ==
-                    BlockType::AIR) {
+                else if (!chunkData.containsBlock({x - 1, y, z})) {
                     //if air, add side to mesh
                     buffer[NORTH].emplace_back(CubeModel::getFace(NORTH, pos, layer));
                 }
@@ -83,13 +75,12 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                 if (y == Chunk::HEIGHT - 1) {
                     if (auto nextChunk = world.getChunk(chunk.xCoord, chunk.yCoord + 1, chunk.zCoord);
                         !nextChunk ||
-                        nextChunk->getBlocks()[x + z * Chunk::WIDTH] == BlockType::AIR) {
+                        !nextChunk->getBlocks().containsBlock({x, 0, z})) {
                         buffer[UP].emplace_back(
                             CubeModel::getFace(UP, pos, layer));
                     }
                 }
-                else if (blocks[x + z * Chunk::DEPTH + (y + 1) * Chunk::DEPTH * Chunk::WIDTH]
-                    == BlockType::AIR) {
+                else if (!chunkData.containsBlock({x, y + 1, z})) {
                     //if air, add side to mesh
                     buffer[UP].emplace_back(CubeModel::getFace(UP, pos, layer));
                 }
@@ -98,14 +89,12 @@ void ChunkMesher::update(World& world, Chunk& chunk, MappedBufferPool& pool) {
                 if (y == 0) {
                     if (auto nextChunk = world.getChunk(chunk.xCoord, chunk.yCoord - 1, chunk.zCoord);
                         !nextChunk ||
-                        nextChunk->getBlocks()[x + z * Chunk::WIDTH + (Chunk::HEIGHT - 1) * Chunk::WIDTH *
-                            Chunk::DEPTH] == BlockType::AIR) {
+                        !nextChunk->getBlocks().containsBlock({x, Chunk::HEIGHT - 1, z})) {
                         buffer[DOWN].emplace_back(
                             CubeModel::getFace(DOWN, pos, layer));
                     }
                 }
-                else if (blocks[x + z * Chunk::DEPTH + (y - 1) * Chunk::DEPTH * Chunk::WIDTH] ==
-                    BlockType::AIR) {
+                else if (!chunkData.containsBlock({x, z, y - 1})) {
                     //if air, add side to mesh
                     buffer[DOWN].emplace_back(CubeModel::getFace(DOWN, pos, layer));
                 }

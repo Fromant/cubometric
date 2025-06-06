@@ -1,6 +1,7 @@
 #include "WorldRenderer.h"
 
 #include <array>
+#include <iostream>
 #include <unordered_set>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -10,13 +11,6 @@
 #include "game/data_loaders/globals.h"
 #include "render/renderers/block/CubeModel.h"
 
-
-class Camera;
-
-struct AABB {
-    glm::vec3 min;
-    glm::vec3 max;
-};
 
 bool isBoxInFrustum(const std::array<glm::vec4, 6>& frustumPlanes, const AABB& box) {
     const glm::vec3& vmin = box.min;
@@ -121,16 +115,21 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     glBindVertexArray(VAO);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
 
-    auto frustumPlanes = camera.getFrustumPlanes();
+    auto frustum = camera.getFrustum();
 
     int chunksRendered = 0;
 
+    int xMin = camera.Position.x / Chunk::WIDTH - VIEW_DISTANCE;
+    int xMax = camera.Position.x / Chunk::WIDTH + VIEW_DISTANCE;
+    int yMin = 0;
+    int yMax = World::WORLD_HEIGHT / Chunk::HEIGHT;
+    int zMin = camera.Position.z / Chunk::DEPTH - VIEW_DISTANCE;
+    int zMax = camera.Position.z / Chunk::DEPTH + VIEW_DISTANCE;
+
     std::unordered_set<size_t> rendered_chunks{};
-    for (int y = 0; y < World::WORLD_HEIGHT / Chunk::HEIGHT; y++) {
-        for (int z = camera.Position.z / Chunk::DEPTH - VIEW_DISTANCE; z < camera.Position.z / Chunk::DEPTH +
-             VIEW_DISTANCE - 1; z++) {
-            for (int x = camera.Position.x / Chunk::WIDTH - VIEW_DISTANCE; x < camera.Position.x / Chunk::WIDTH +
-                 VIEW_DISTANCE - 1; x++) {
+    for (int y = yMin; y < yMax; y++) {
+        for (int z = zMin; z < zMax; z++) {
+            for (int x = xMin; x < xMax; x++) {
                 Chunk& chunk = *world.getChunk(x, y, z);
                 const size_t id = Chunk::getId(x, y, z);
                 rendered_chunks.emplace(id);
@@ -138,7 +137,7 @@ int WorldRenderer::render(World& world, const Camera& camera) {
                     ChunkMesher::update(world, chunk, bufferPool);
                 }
                 AABB chunkBox = getChunkBoundingBox(glm::vec3(x * Chunk::WIDTH, y * Chunk::HEIGHT, z * Chunk::DEPTH));
-                if (isBoxInFrustum(frustumPlanes, chunkBox)) {
+                if (frustum.isAABBVisible(chunkBox)) {
                     glm::ivec3 coords{chunk.xCoord, chunk.yCoord, chunk.zCoord};
                     renderChunk(coords, camera.Position, chunk);
                     chunksRendered++;
@@ -147,11 +146,18 @@ int WorldRenderer::render(World& world, const Camera& camera) {
         }
     }
 
-    for (auto chunk : world.chunks) {
+    for (const auto& chunk : world.chunks) {
         if (!rendered_chunks.contains(chunk.first)) {
             bufferPool.deleteBuffer(chunk.first);
         }
     }
+
+    std::erase_if(world.chunks, [xMin, xMax, yMin, yMax, zMin, zMax](const auto& iter) {
+        bool erase =  iter.second.xCoord < xMin || iter.second.xCoord > xMax ||
+            iter.second.yCoord < yMin || iter.second.yCoord > yMax ||
+            iter.second.zCoord < zMin || iter.second.zCoord > zMax;
+        return erase;
+    });
 
     // glFlush();
 

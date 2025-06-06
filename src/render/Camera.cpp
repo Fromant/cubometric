@@ -12,7 +12,7 @@ Camera::Camera(float aspectRatio, glm::vec3 position) : Position(position), Velo
 }
 
 void Camera::Update(float deltaTime) {
-    const bool *keys = SDL_GetKeyboardState(nullptr);
+    const bool* keys = SDL_GetKeyboardState(nullptr);
     float velocity = Speed * deltaTime;
 
     if (keys[SDL_SCANCODE_W]) Position += Front * velocity;
@@ -25,7 +25,7 @@ void Camera::Update(float deltaTime) {
     updateMatrices();
 }
 
-void Camera::HandleEvent(SDL_Event &event, bool lockMouse) {
+void Camera::HandleEvent(SDL_Event& event, bool lockMouse) {
     if (event.type == SDL_EVENT_MOUSE_MOTION && lockMouse) {
         Yaw += event.motion.xrel * Sensitivity;
         Pitch -= event.motion.yrel * Sensitivity;
@@ -34,11 +34,11 @@ void Camera::HandleEvent(SDL_Event &event, bool lockMouse) {
     }
 }
 
-const glm::mat4 &Camera::getViewMatrix() const {
+const glm::mat4& Camera::getViewMatrix() const {
     return view;
 }
 
-const glm::mat4 &Camera::getProjectionMatrix() const {
+const glm::mat4& Camera::getProjectionMatrix() const {
     return projection;
 }
 
@@ -60,43 +60,29 @@ void Camera::updateMatrices() {
     view = glm::lookAt(Position, Position + Front, Up);
 }
 
-void NormalizePlane(Plane &p) {
-    // Here we calculate the magnitude of the normal to the plane (point A B C)
-    // Remember that (A, B, C) is that same thing as the normal's (X, Y, Z).
-    // To calculate magnitude you use the equation:  magnitude = sqrt( x^2 + y^2 + z^2)
-    auto magnitude = (float) sqrt(p.normal.x * p.normal.x +
-                                   p.normal.y * p.normal.y +
-                                   p.normal.z * p.normal.z);
 
-    // Then we divide the plane's values by it's magnitude.
-    // This makes it easier to work with.
-    p.normal /= magnitude;
-    p.normal /= magnitude;
-}
-
-
-std::array<glm::vec4, 6> Camera::getFrustumPlanes() const {
+Frustum Camera::getFrustum() const {
     //black magic code i don't understand it
-    const glm::mat4 vp  = projection * view;
+    const glm::mat4 vp = projection * view;
 
     const glm::mat4 vpt = glm::transpose(vp);
 
-    std::array<glm::vec4, 6> frustumPlanes = {
-        // left, right, bottom, top
-        (vpt[3] + vpt[0]),
-        (vpt[3] - vpt[0]),
-        (vpt[3] + vpt[1]),
-        (vpt[3] - vpt[1]),
-        // near, far
-        (vpt[3] + vpt[2]),
-        (vpt[3] - vpt[2]),
-    };
+    std::array<Plane, 6> frustumPlanes = {
+            // left, right, bottom, top
+            Plane(vpt[3] + vpt[0]),
+            Plane(vpt[3] - vpt[0]),
+            Plane(vpt[3] + vpt[1]),
+            Plane(vpt[3] - vpt[1]),
+            // near, far
+            Plane(vpt[3] + vpt[2]),
+            Plane(vpt[3] - vpt[2]),
+        };
 
     // Normalize each plane
     for (auto& plane : frustumPlanes) {
-        float length = glm::length(glm::vec3(plane.x, plane.y, plane.z));
+        float length = sqrtf(plane.data.x * plane.data.x + plane.data.y * plane.data.y + plane.data.z * plane.data.z);
         if (length > 0.0f) {
-            plane /= length;
+            plane.data /= length;
         }
     }
 

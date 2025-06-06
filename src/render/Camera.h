@@ -1,7 +1,5 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
-#include <array>
 #include <glm/glm.hpp>
 #include <SDL3/SDL_events.h>
 
@@ -22,7 +20,7 @@ public:
 
     const glm::mat4 &getProjectionMatrix() const;
 
-    std::array<glm::vec4, 6> getFrustumPlanes() const;
+   Frustum getFrustum() const;
 
     const glm::vec3 &getDirection() const { return Front; }
 
@@ -47,6 +45,3 @@ private:
 
     void updateMatrices();
 };
-
-
-#endif //CAMERA_H

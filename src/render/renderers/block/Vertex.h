@@ -1,16 +1,21 @@
-#ifndef VERTEX_H
-#define VERTEX_H
+#pragma once
+
+typedef uint64_t VertexData;
 
 struct Vertex {
-    constexpr static int coordShift = 6;
-    constexpr static int coordMask = (1 << coordShift) - 1;
-    constexpr static int texShift = 1;
-    constexpr static int texMask = (1 << texShift) - 1;
-    constexpr static int layerShift = 11;
-    constexpr static int layerMask = (1 << layerShift) - 1;
+    constexpr static VertexData coordShift = 6;
+    constexpr static VertexData coordMask = (1 << coordShift) - 1;
+
+    constexpr static VertexData texShift = 1;
+    constexpr static VertexData texMask = (1 << texShift) - 1;
+
+    constexpr static VertexData layerShift = 11;
+    constexpr static VertexData layerMask = (1 << layerShift) - 1;
+
+    // constexpr static VertexData ;
 
     //31 bits compacted: 11layer 1texX 1texY 6z 6y 6x
-    unsigned int data;
+    VertexData data;
 
     constexpr Vertex(char x, char y, char z, int textureX, int textureY, int layer = 0) {
         data = (x & coordMask) | ((y & coordMask) << coordShift) | ((z & coordMask) << (2 * coordShift))
@@ -42,5 +47,3 @@ struct Vertex {
         return (data >> (3 * coordShift + 2 * texShift)) & layerMask;
     }
 };
-
-#endif //VERTEX_H

@@ -1,9 +1,7 @@
-#ifndef BLOCKTYPE_H
-#define BLOCKTYPE_H
+#pragma once
+
 #include <SDL3/SDL_stdinc.h>
 
-enum class BlockType : Uint16 {
+enum class BlockType : uint32_t {
     AIR, DIRT, GRASS, STONE
 };
-
-#endif //BLOCKTYPE_H

@@ -79,7 +79,7 @@ void Application::Init() {
 
     // OpenGL Context Settings
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     // Create Window
@@ -112,9 +112,9 @@ void Application::Init() {
     // Enable depth testing and face culling
     glEnable(GL_DEPTH_TEST);
     // not needed now as we render only front facing faces
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
-    // glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
 
     debugRenderer = new debug::DebugRenderer();
     textureManager.Init("assets/textures/");
