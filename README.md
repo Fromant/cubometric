@@ -14,7 +14,8 @@ Right now it's unplayable stone simulator written in CPP+OpenGL+GLAD+SDL+glm+...
 - LMB to capture lock&capture mouse
 
 # Compile & run:
-- Make sure dependencies are installed (sdl3, opengl, glad, glm) (I recommend using `vcpkg install glm` and etc)
+- Make sure dependencies are installed (sdl3, vulkan SDK, glm) (I recommend using `vcpkg install glm` and etc)
+- (Optional) change roots of libraries in CMakeLists.txt file
 - Build with cmake
 - Before running, make sure SDL3.dll is located inside build folder (Important!)
 - ??? Profit

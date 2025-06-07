@@ -2,7 +2,7 @@
 #include "game/data_loaders/JsonLoader.h"
 
 int main() {
-    JsonLoader k("assets");
+    // JsonLoader k("assets");
     Application a{};
     a.Run();
     return 0;
