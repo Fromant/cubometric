@@ -10,7 +10,7 @@
 #include "render/globals.h"
 #include "utils/Shader.hpp"
 
-Application::Application(): camera(float(render::screenWidth) / float(render::screenHeight)) {
+Application::Application(): camera(float(width) / float(height)) {
     Init();
 }
 
@@ -126,7 +126,7 @@ void Application::Init() {
 
     // Create Window
     Window = SDL_CreateWindow("Voxel Game", width, height,
-                              SDL_WINDOW_VULKAN);
+                              SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
     if (!Window) {
         std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
         exit(EXIT_FAILURE);
@@ -141,7 +141,7 @@ void Application::Init() {
     // textureManager.Init("assets/textures/");
     // worldRenderer.init();
 
-    camera.changeAspectRatio(float(render::screenWidth) / render::screenHeight);
+    camera.changeAspectRatio(float(width) / height);
 }
 
 bool Application::HandleEvents() {
@@ -149,8 +149,8 @@ bool Application::HandleEvents() {
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_EVENT_QUIT) return false;
         if (event.type == SDL_EVENT_WINDOW_RESIZED) {
-            render::screenWidth = event.window.data1;
-            render::screenHeight = event.window.data2;
+            width = event.window.data1;
+            height = event.window.data2;
             UpdateViewport();
         }
         else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
@@ -366,6 +366,29 @@ void Application::createSwapChain() {
     swapChainExtent = extent;
 }
 
+void Application::cleanupSwapChain() {
+    for (size_t i = 0; i < swapChainFramebuffers.size(); i++) {
+        vkDestroyFramebuffer(device, swapChainFramebuffers[i], nullptr);
+    }
+
+    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+        vkDestroyImageView(device, swapChainImageViews[i], nullptr);
+    }
+
+    vkDestroySwapchainKHR(device, swapChain, nullptr);
+}
+
+
+void Application::recreateSwapChain() {
+    vkDeviceWaitIdle(device);
+
+    cleanupSwapChain();
+
+    createSwapChain();
+    createImageViews();
+    createFramebuffers();
+}
+
 
 bool Application::isDeviceSuitable(VkPhysicalDevice device) {
     QueueFamilyIndices indices = findQueueFamilies(device);
@@ -490,7 +513,8 @@ void Application::createInstance() {
 
 
 void Application::UpdateViewport() {
-    camera.changeAspectRatio(float(render::screenWidth) / float(render::screenHeight));
+    camera.changeAspectRatio(float(width) / float(height));
+    recreateSwapChain();
 }
 
 void Application::createImageViews() {
@@ -852,6 +876,13 @@ Application::~Application() {
 void Application::cleanup() {
     vkDeviceWaitIdle(device);
 
+    cleanupSwapChain();
+
+    vkDestroyPipeline(device, graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+
+    vkDestroyRenderPass(device, renderPass, nullptr);
+
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
@@ -860,18 +891,6 @@ void Application::cleanup() {
 
     vkDestroyCommandPool(device, commandPool, nullptr);
 
-    for (auto framebuffer : swapChainFramebuffers) {
-        vkDestroyFramebuffer(device, framebuffer, nullptr);
-    }
-
-    vkDestroyPipeline(device, graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-    vkDestroyRenderPass(device, renderPass, nullptr);
-
-    for (auto imageView : swapChainImageViews) {
-        vkDestroyImageView(device, imageView, nullptr);
-    }
-    vkDestroySwapchainKHR(device, swapChain, nullptr);
     SDL_Vulkan_DestroySurface(instance, surface, nullptr);
     vkDestroyDevice(device, nullptr);
     vkDestroyInstance(instance, nullptr);

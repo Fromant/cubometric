@@ -54,6 +54,8 @@ private:
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
     void createSwapChain();
+    void recreateSwapChain();
+    void cleanupSwapChain();
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
