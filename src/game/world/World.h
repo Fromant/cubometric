@@ -12,6 +12,8 @@ public:
     // std::deque<std::deque<std::array<Chunk, WORLD_HEIGHT / Chunk::HEIGHT>>> chunks;
     std::unordered_map<size_t, Chunk> chunks;
 
+    static constexpr float DAY_DURATION_SEC = 1.0f;
+
     Chunk* getChunk(int x, int z) {
         auto it = chunks.find(Chunk::getId(x, z));
         if (it == chunks.end()) {

@@ -33,6 +33,8 @@ void TextureManager::Init(const std::string& folder_path) {
         exit(EXIT_FAILURE);
     }
 
+    stbi_set_flip_vertically_on_load(1);
+
     int layer = 0;
 
     for (const auto& file : std::filesystem::recursive_directory_iterator(folder_path)) {
@@ -94,6 +96,8 @@ void TextureManager::Init(const std::string& folder_path) {
 
         textureMap.emplace(filename, layer++);
     }
+
+    stbi_set_flip_vertically_on_load(0);
 }
 
 GLuint TextureManager::getTextureLayer(const std::string& name) const {

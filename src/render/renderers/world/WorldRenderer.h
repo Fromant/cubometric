@@ -10,7 +10,7 @@
 #include "render/Camera.h"
 
 class WorldRenderer {
-    constexpr static int VIEW_DISTANCE = 12;
+    constexpr static int VIEW_DISTANCE = 16;
     MappedBufferPool bufferPool{VIEW_DISTANCE * VIEW_DISTANCE * 4};
 
     Shader* shader = nullptr;

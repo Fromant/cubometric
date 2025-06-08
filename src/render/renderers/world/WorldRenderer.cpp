@@ -5,6 +5,8 @@
 #include <unordered_set>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <SDL3/SDL_timer.h>
 
 #include "ChunkMesher.h"
 
@@ -44,7 +46,7 @@ AABB getChunkBoundingBox(const glm::vec3& chunkPosition) {
 
 
 void WorldRenderer::init() {
-    shader = new Shader("shaders/face/vert.glsl", "shaders/face/frag.glsl");
+    shader = new Shader("shaders/face/vert.glsl", "shaders/face/frag.glsl", "shaders/face/geom.glsl");
 
     glGenVertexArrays(1, &VAO);
 
@@ -130,6 +132,16 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     // shader->setSampler("atlasTexture", 0);
     shader->setMat4("view", view);
     shader->setMat4("projection", proj);
+
+    auto time = SDL_GetTicks();
+    float radius = 50.0f; // distance from center
+    float height = 100.0f; // height above ground
+    float angle = time / 1000.0f / World::DAY_DURATION_SEC; // same as before
+
+    float x = cosf(angle) * radius;
+    float z = sinf(angle) * radius;
+    float y = height; // fixed height
+    shader->setVec3("lightDir", glm::normalize(glm::vec3(x, y, z)));
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
