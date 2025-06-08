@@ -114,8 +114,8 @@ void ChunkMesher::update(World& world, const glm::ivec2& pos, MappedBufferPool& 
     if (!gpuBuffer)
         gpuBuffer = pool.createBuffer(chunkID, total_size * sizeof(FaceInstance));
 
-    std::vector<FaceInstance> totalFaces;
     totalFaces.reserve(total_size);
+    totalFaces.clear();
     for (const auto& subChunk : buffer) {
         for (const auto& dir : subChunk) {
             totalFaces.insert(totalFaces.end(), dir.begin(), dir.end());

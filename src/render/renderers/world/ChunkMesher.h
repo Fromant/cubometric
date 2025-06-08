@@ -10,6 +10,7 @@
 
 class ChunkMesher {
     static inline std::array<std::array<std::vector<FaceInstance>, 6>, Chunk::SUB_COUNT> buffer{};
+    static inline std::vector<FaceInstance> totalFaces;
 
 public:
     static void update(World& world, const glm::ivec2& pos, MappedBufferPool& pool);
