@@ -28,8 +28,16 @@ class WorldRenderer {
         GLuint baseInstance;
     } DrawArraysIndirectCommand;
 
-    void renderChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords, const Chunk& chunk);
-    static void renderChunkFacing(const Chunk& chunk, Facing f, std::vector<DrawArraysIndirectCommand>& cmds);
+    std::vector<DrawArraysIndirectCommand> cmds;
+
+    void renderChunk(const glm::ivec2& coords, size_t y0, size_t y1,
+                     const glm::vec3& cameraCoords,
+                     const GPUBuffer* buffer);
+    void renderSubChunk(const glm::ivec3& coords,
+                        const glm::vec3& cameraCoords,
+                        const GPUBuffer* buffer);
+    static void renderSubChunkFacing(const GPUBuffer* buf, int y, Facing f,
+                                     std::vector<DrawArraysIndirectCommand>& cmds);
 
 public:
     int render(World& w, const Camera& c);

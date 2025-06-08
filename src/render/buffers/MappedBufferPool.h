@@ -28,8 +28,8 @@ public:
         m_buffers.erase(chunkId);
     }
 
-    bool containsBuffer(size_t id) {
-        return m_buffers.find(id) != m_buffers.end();
+    bool containsBuffer(size_t chunkId) {
+        return m_buffers.find(chunkId) != m_buffers.end();
     }
 
 private:

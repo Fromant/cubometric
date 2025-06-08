@@ -6,20 +6,26 @@ set(CMAKE_CXX_FLAGS "-static -O3")
 #set(CMAKE_CXX_FLAGS "-static -g -fno-omit-frame-pointer -O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-static -g -fno-omit-frame-pointer -O0")
 IF(WIN32)
-    set(SDL3_DIR "C:\\Users\\frama\\.vcpkg-clion\\vcpkg\\packages\\sdl3_x64-mingw-dynamic\\share\\sdl3")
     set(glad_DIR "C:\\Users\\frama\\.vcpkg-clion\\vcpkg\\packages\\glad_x64-mingw-dynamic\\share\\glad")
     set(glm_DIR "C:\\Users\\frama\\.vcpkg-clion\\vcpkg\\packages\\glm_x64-mingw-dynamic\\share\\glm")
 ENDIF()
 # Find SDL3 and OpenGL
 find_package(OpenGL REQUIRED)
 find_package(glad CONFIG REQUIRED)
-find_package(SDL3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 
 include(FetchContent)
 
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
 FetchContent_MakeAvailable(json)
+
+FetchContent_Declare(
+        SDL3
+        GIT_REPOSITORY "https://github.com/libsdl-org/SDL.git"
+        GIT_TAG "release-3.2.16"
+        EXCLUDE_FROM_ALL
+)
+FetchContent_MakeAvailable(SDL3)
 
 # Build executable
 add_executable(${PROJECT_NAME} src/main.cpp

@@ -7,9 +7,9 @@ class WorldGenerator {
 
     explicit WorldGenerator(unsigned seed = 0) : terrainNoise(seed) {}
 
-    Chunk& generateChunk(int x, int y, int z, std::unordered_map<size_t, Chunk>& chunks) {
-        size_t id = Chunk::getId(x, y, z);
-        Chunk& generated = chunks.emplace(id, glm::ivec3{x, y, z}).first->second;
+    Chunk& generateChunk(int x,int z, std::unordered_map<size_t, Chunk>& chunks) const {
+        size_t id = Chunk::getId(x, z);
+        Chunk& generated = chunks.emplace(id, glm::ivec2{x, z}).first->second;
         auto& blocks = generated.getBlocks();
 
         const int worldX0 = x * Chunk::WIDTH;
@@ -39,17 +39,15 @@ class WorldGenerator {
                 int surfaceY = BASE_HEIGHT + static_cast<int>(noiseVal * AMPLITUDE);
 
                 // Generate vertical column
-                for (int y1 = 0; y1 < Chunk::HEIGHT; y1++) {
-                    const int worldY = y * Chunk::HEIGHT + y1;
-
+                for (int worldY = 0; worldY < Chunk::HEIGHT; worldY++) {
                     if (worldY > surfaceY) {
                         // blocks[index] = BlockType::AIR;
                     } else if (worldY == surfaceY) {
-                        blocks.changeBlock({x1,y1,z1}, BlockType::GRASS);
+                        blocks.changeBlock({x1,worldY,z1}, BlockType::GRASS);
                     } else if (worldY > surfaceY - 4) {
-                        blocks.changeBlock({x1,y1,z1}, BlockType::DIRT);
+                        blocks.changeBlock({x1,worldY,z1}, BlockType::DIRT);
                     } else {
-                        blocks.changeBlock({x1,y1,z1}, BlockType::STONE);
+                        blocks.changeBlock({x1,worldY,z1}, BlockType::STONE);
                     }
                 }
             }

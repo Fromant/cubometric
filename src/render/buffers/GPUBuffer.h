@@ -4,11 +4,20 @@
 #include <memory>
 #include <glad/glad.h>
 
+#include "game/world/EFacing.h"
+
 class GPUBuffer {
 public:
+    struct GPUBufferView {
+        size_t offset = 0;
+        size_t size = 0;
+    };
+
     explicit GPUBuffer(size_t initialCapacity = 0) {
         if (initialCapacity > 0) resize(initialCapacity);
     }
+
+    std::array<std::array<GPUBufferView, 6>, Chunk::HEIGHT / Chunk::WIDTH> subChunks{};
 
     ~GPUBuffer() {
         if (m_id) {
@@ -42,14 +51,19 @@ public:
         return *this;
     }
 
+    const GPUBufferView& getView(size_t y, Facing f) const {
+        return subChunks[f][y];
+    }
+
     void bind(GLenum target = GL_ARRAY_BUFFER) const {
         glBindBuffer(target, m_id);
         glEnableVertexAttribArray(0);
         glVertexAttribIPointer(0, 2, GL_UNSIGNED_INT, 2 * sizeof(unsigned int), (void*)0);
     }
 
-    void write(const void* data, size_t size, size_t offset = 0) {
-        if (size == 0) return;
+    void write(const void* data, size_t size, size_t offset,
+               const std::array<std::array<GPUBufferView, 6>, Chunk::HEIGHT / Chunk::WIDTH>& subChunks) {
+        this->subChunks = subChunks;
         if (offset + size > m_capacity) {
             resize(calculateGrowth(offset + size));
         }

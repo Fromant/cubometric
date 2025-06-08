@@ -70,6 +70,13 @@ void Application::Update(float deltaTime) {
     camera.Update(deltaTime);
 }
 
+// Define the callback
+void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id,
+                            GLenum severity, GLsizei length,
+                            const GLchar* message, const void* userParam) {
+    std::cerr << "OpenGL Debug Message: " << message << std::endl;
+}
+
 
 void Application::Init() {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -108,6 +115,10 @@ void Application::Init() {
         exit(EXIT_FAILURE);
     }
     SDL_GL_MakeCurrent(Window, GLContext);
+
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(DebugCallback, nullptr);
 
     // Enable depth testing and face culling
     glEnable(GL_DEPTH_TEST);

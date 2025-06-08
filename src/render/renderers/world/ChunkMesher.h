@@ -9,10 +9,10 @@
 #include "render/renderers/block/CubeModel.h"
 
 class ChunkMesher {
-    static inline std::array<std::vector<FaceInstance>, 6> buffer{};
+    static inline std::array<std::array<std::vector<FaceInstance>, 6>, Chunk::SUB_COUNT> buffer{};
 
 public:
-    static void update(World& world, Chunk& chunk, MappedBufferPool& pool);
+    static void update(World& world, const glm::ivec2& pos, MappedBufferPool& pool);
 };
 
 

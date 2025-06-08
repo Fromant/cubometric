@@ -1,28 +1,29 @@
 #pragma once
 
-#include <cmath>
 #include <functional>
+#include <iostream>
 
 #include <glm/glm.hpp>
 
 #include "BlockType.h"
 
 class ChunkData {
-    static short getIndex(const glm::vec3& pos) {
-        return pos.x + pos.y * SIZE + pos.z * SIZE * SIZE;
+    static size_t getIndex(const glm::ivec3& pos) {
+        return pos.x + pos.y * WIDTH * DEPTH + pos.z * WIDTH;
     }
 
 public:
-    static constexpr int SIZE = 32;
-    static_assert((SIZE & (SIZE - 1)) == 0, "SIZE must be a power of 2");
-    static constexpr int DEPTH = static_cast<int>(std::log2(SIZE));
+    static constexpr int WIDTH = 32;
+    static constexpr int HEIGHT = 256;
+    static constexpr int DEPTH = 32;
 
     std::vector<BlockType> blocks;
 
-    ChunkData() : blocks(SIZE * SIZE * SIZE, BlockType::AIR) {}
+    ChunkData() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::AIR) {}
 
     void changeBlock(const glm::ivec3& pos, BlockType data) {
-        blocks[getIndex(pos)] = data;
+        blocks.at(getIndex(pos)) = data;
+        // blocks[getIndex(pos)] = data;
     }
 
     void deleteBlock(const glm::ivec3& pos) {
