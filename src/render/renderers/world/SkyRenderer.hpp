@@ -4,9 +4,13 @@
 
 class SkyRenderer {
     Shader* skyboxShader = nullptr;
-    GLuint cubeMapTexture = 0;
     GLuint skyVAO = 0;
     GLuint skyVBO = 0;
+
+    //Do not glDeleteTextures()
+    GLuint texture = 0;
+
+    float startTime = 0;
 
 public:
     void renderSkybox(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& pos) const;

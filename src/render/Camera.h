@@ -4,25 +4,28 @@
 #include <SDL3/SDL_events.h>
 
 #include "Frustum.h"
+#include "game/world/Chunk.h"
 
 class Camera {
 public:
     glm::vec3 Position;
     glm::vec3 Velocity;
 
+    int viewDistance = 16;
+
     explicit Camera(float aspectRatio, glm::vec3 position = glm::vec3(0.0f));
 
     void Update(float deltaTime);
 
-    void HandleEvent(SDL_Event &event, bool lockMouse);
+    void HandleEvent(SDL_Event& event, bool lockMouse);
 
-    const glm::mat4 &getViewMatrix() const;
+    const glm::mat4& getViewMatrix() const;
 
-    const glm::mat4 &getProjectionMatrix() const;
+    const glm::mat4& getProjectionMatrix() const;
 
-   Frustum getFrustum() const;
+    Frustum getFrustum() const;
 
-    const glm::vec3 &getDirection() const { return Front; }
+    const glm::vec3& getDirection() const { return Front; }
 
     void changeAspectRatio(float aspectRatio);
 
@@ -40,8 +43,8 @@ private:
     float FOV = 90.0f;
     float aspectRatio{};
 
-    static constexpr float zFar = 1000.0f;
-    static constexpr float zNear = 0.1f;
+    const float zFar = viewDistance * Chunk::WIDTH * sqrtf(2);
+    const float zNear = 0.1f;
 
     void updateMatrices();
 };

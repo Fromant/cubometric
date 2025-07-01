@@ -5,6 +5,7 @@
 #include <glad/glad.h>
 
 #include "game/world/EFacing.h"
+#include "render/renderers/block/Vertex.h"
 
 class GPUBuffer {
 public:
@@ -55,10 +56,10 @@ public:
         return subChunks[f][y];
     }
 
-    void bind(GLenum target = GL_ARRAY_BUFFER) const {
-        glBindBuffer(target, m_id);
+    void bind() const {
+        glBindBuffer(GL_ARRAY_BUFFER, m_id);
         glEnableVertexAttribArray(0);
-        glVertexAttribIPointer(0, 2, GL_UNSIGNED_INT, 2 * sizeof(unsigned int), (void*)0);
+        glVertexAttribIPointer(0, 2, GL_UNSIGNED_INT, sizeof(VertexData), (void*)0);
     }
 
     void write(const void* data, size_t size, size_t offset,

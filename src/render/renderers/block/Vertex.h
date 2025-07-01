@@ -14,7 +14,7 @@ struct Vertex {
 
     // constexpr static VertexData ;
 
-    //(4free) 4light 11layer 6texX 6texY 11x 11y 11z
+    //(4free) 4light 11layer 6texX 6texY 11x 11y 11z - in the future update
     //31 bits compacted: 11layer 1texX 1texY 6z 6y 6x
     VertexData data;
 

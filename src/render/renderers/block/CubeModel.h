@@ -77,14 +77,15 @@ class CubeModel {
         };
 
 public:
-    static constexpr FaceInstance getFace(const Facing f, const glm::ivec3& pos, const int layer) {
+    static constexpr FaceInstance getFace(const Facing f, const glm::ivec3& pos, const int layer,
+                                          const glm::ivec3& scale = {1,1,1}) {
         FaceInstance tr = cubeFaces[f];
 
         for (auto& vertex : tr.vertices) {
             // Keep local position; chunk offset is applied in shader
-            int x = vertex.getX() + pos.x;
-            int y = vertex.getY() + pos.y;
-            int z = vertex.getZ() + pos.z;
+            int x = vertex.getX() * scale.x + pos.x;
+            int y = vertex.getY() * scale.y + pos.y;
+            int z = vertex.getZ() * scale.z + pos.z;
             // No addition of pos.x/pos.y/pos.z here
             // Preserve texture bits (0x3000) and local position
             vertex = Vertex(x, y, z, vertex.getTexU(), vertex.getTexV(), layer);

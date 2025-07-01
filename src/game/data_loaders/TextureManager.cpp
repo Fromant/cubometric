@@ -109,7 +109,32 @@ GLuint TextureManager::getTextureLayer(const std::string& name) const {
     return it->second;
 }
 
+GLuint TextureManager::loadTexture2D(const std::string& name, GLuint internalFormat, GLuint type, GLuint minFilter, GLuint magFilter) {
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    additionalTextures.emplace_back(textureID);
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load(name.c_str(), &width, &height, &nrChannels, 0);
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D,
+                     0, internalFormat, width, height, 0, internalFormat, type, data);
+        stbi_image_free(data);
+    }
+    else {
+        std::cerr << "Texture failed to load at path: " << name << std::endl;
+        stbi_image_free(data);
+        exit(EXIT_FAILURE);
+    }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+    return textureID;
+}
+
 
 TextureManager::~TextureManager() {
+    glDeleteTextures(additionalTextures.size(), additionalTextures.data());
     glDeleteTextures(1, &textureArray);
 }

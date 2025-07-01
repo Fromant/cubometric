@@ -3,7 +3,6 @@
 - [x] Move to mappedbufferpool in world rendering
 - [x] Draw debug info (also redo debugDrawer to screenSpace coords `[-1; 1]`)
 - [ ] Multithreading (draw thread, worldgen thread, mesher thread)
-- 
 - [ ] Block model loadings
 - [ ] Add items
 - [ ] Add entities(?) (separate buffer tho 100%)
@@ -20,11 +19,17 @@
 - [x] Move to 32x32x32 chunks
 - [x] better world structuring
 - [x] switch texturing to texture arrays instead of textures
+- [x] Add diffuse lightning
+- [ ] Greedy mesher
+- [ ] LODs
+- [ ] Chunk border rendering
+- [ ] Add baked lightning into vertices (for other light sources and ambient occlusion)
+- [ ] Procedural sky
 - [ ] Switch to vulkan????
-- [ ] Rewrite memory allocator to save all buffers in the same buffer. Group them somehow to reduce draw call count.
+- [ ] Rewrite memory allocator to save on buffer switches.
 - [ ] Make a lot debug info nice looking and possible to easy add and delete.
-- [ ] Add lightning
-- [ ] Add font rendering (by pixel font, not ttf you silly)
+- [ ] Add pixel font rendering
+- [ ] Entity renderer
 - [ ] Item renderer
 
 # Debug
@@ -35,7 +40,7 @@
 
 - [x] Simple cube
 - [x] y=sin(x+z)
-- [ ] Perlin noise
+- [x] Perlin noise
 
 # Game
 

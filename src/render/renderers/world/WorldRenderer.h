@@ -10,8 +10,7 @@
 #include "render/Camera.h"
 
 class WorldRenderer {
-    constexpr static int VIEW_DISTANCE = 16;
-    MappedBufferPool bufferPool{VIEW_DISTANCE * VIEW_DISTANCE * 4};
+    MappedBufferPool bufferPool;
 
     Shader* shader = nullptr;
     SkyRenderer skyRenderer;
@@ -35,9 +34,10 @@ class WorldRenderer {
                      const GPUBuffer* buffer);
     void renderSubChunk(const glm::ivec3& coords,
                         const glm::vec3& cameraCoords,
-                        const GPUBuffer* buffer);
+                        const GPUBuffer* buffer, bool& bufferBind);
     static void renderSubChunkFacing(const GPUBuffer* buf, int y, Facing f,
                                      std::vector<DrawArraysIndirectCommand>& cmds);
+    static void renderChunkGrid(const Camera& camera);
 
 public:
     int render(World& w, const Camera& c);
@@ -49,4 +49,5 @@ public:
     void switchWireframeRendering() { renderWireframe = !renderWireframe; }
 
     ~WorldRenderer();
+    explicit WorldRenderer(const Camera& camera) : bufferPool(camera.viewDistance * camera.viewDistance * 4) {}
 };

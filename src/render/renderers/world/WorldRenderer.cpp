@@ -14,39 +14,20 @@
 #include "render/utils.h"
 #include "render/renderers/block/CubeModel.h"
 
-
-bool isBoxInFrustum(const std::array<glm::vec4, 6>& frustumPlanes, const AABB& box) {
-    const glm::vec3& vmin = box.min;
-    const glm::vec3& vmax = box.max;
-
-    for (const auto& g : frustumPlanes) {
-        if ((glm::dot(g, glm::vec4(vmin.x, vmin.y, vmin.z, 1.0f)) < 0.0) &&
-            (glm::dot(g, glm::vec4(vmax.x, vmin.y, vmin.z, 1.0f)) < 0.0) &&
-            (glm::dot(g, glm::vec4(vmin.x, vmax.y, vmin.z, 1.0f)) < 0.0) &&
-            (glm::dot(g, glm::vec4(vmax.x, vmax.y, vmin.z, 1.0f)) < 0.0) &&
-            (glm::dot(g, glm::vec4(vmin.x, vmin.y, vmax.z, 1.0f)) < 0.0) &&
-            (glm::dot(g, glm::vec4(vmax.x, vmin.y, vmax.z, 1.0f)) < 0.0) &&
-            (glm::dot(g, glm::vec4(vmin.x, vmax.y, vmax.z, 1.0f)) < 0.0) &&
-            (glm::dot(g, glm::vec4(vmax.x, vmax.y, vmax.z, 1.0f)) < 0.0)) {
-            // Not visible - all returned negative
-            return false;
-        }
-    }
-
-    // Potentially visible
-    return true;
-}
-
-AABB getChunkBoundingBox(const glm::vec3& chunkPosition) {
+AABB getSubChunkBoundingBox(const glm::vec3& chunkPosition) {
     AABB box{};
     box.min = chunkPosition;
-    box.max = chunkPosition + glm::vec3(Chunk::WIDTH, Chunk::WIDTH, Chunk::DEPTH);
+    box.max = chunkPosition + glm::vec3(Chunk::WIDTH, Chunk::SUB_HEIGHT, Chunk::DEPTH);
     return box;
 }
 
 
 void WorldRenderer::init() {
     shader = new Shader("shaders/face/vert.glsl", "shaders/face/frag.glsl", "shaders/face/geom.glsl");
+    shader->use();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureManager.getTextureArray());
+    shader->setSampler("atlasTexture", 0);
 
     glGenVertexArrays(1, &VAO);
 
@@ -62,15 +43,21 @@ void WorldRenderer::init() {
 void WorldRenderer::renderSubChunkFacing(const GPUBuffer* buf, int y, Facing f,
                                          std::vector<DrawArraysIndirectCommand>& cmds) {
     auto& view = buf->subChunks[y][f];
-    if (view.size > 0)
+    if (view.size > 0) {
+        if (!cmds.empty()) {
+            auto& lastCMD = cmds.back();
+            if (lastCMD.first + lastCMD.count == view.offset * 6) {
+                lastCMD.count += view.size * 6;
+            }
+        }
         cmds.emplace_back(view.size * 6, 1, view.offset * 6, 0);
+    }
 }
 
 void WorldRenderer::renderSubChunk(const glm::ivec3& coords,
                                    const glm::vec3& cameraCoords,
-                                   const GPUBuffer* buffer) {
+                                   const GPUBuffer* buffer, bool& bufferBind) {
     cmds.clear();
-    shader->setIVec3("chunkCoords", coords);
 
     if (coords.x * Chunk::WIDTH - static_cast<int>(cameraCoords.x) < Chunk::WIDTH)
         renderSubChunkFacing(buffer, coords.y, SOUTH, cmds);
@@ -88,6 +75,11 @@ void WorldRenderer::renderSubChunk(const glm::ivec3& coords,
         renderSubChunkFacing(buffer, coords.y, EAST, cmds);
 
     if (cmds.size() == 0) return;
+    if (!bufferBind) {
+        bufferBind = true;
+        buffer->bind();
+    }
+    shader->setIVec3("chunkCoords", coords);
 
     glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(DrawArraysIndirectCommand) * cmds.size(), cmds.data(),
                  GL_DYNAMIC_DRAW);
@@ -99,14 +91,14 @@ void WorldRenderer::renderChunk(const glm::ivec2& coords, const size_t y0, const
                                 const GPUBuffer* buffer) {
     if (!buffer || buffer->size() == 0) return;
 
-    buffer->bind();
     if (auto err = glGetError(); err != GL_NO_ERROR)
         std::cout << __FILE__ << ':' << __LINE__ << ' ' << err << std::endl;
 
     if (y0 == -1) return;
+    bool bufferBind = false;
     for (int y = y0; y <= y1; y++) {
         // std::cout << "Rendering subchunk " << coords.x << ' ' << y << ' ' << coords.y << std::endl;
-        renderSubChunk({coords.x, y, coords.y}, cameraCoords, buffer);
+        renderSubChunk({coords.x, y, coords.y}, cameraCoords, buffer, bufferBind);
     }
 
     if (auto err = glGetError(); err != GL_NO_ERROR)
@@ -115,11 +107,45 @@ void WorldRenderer::renderChunk(const glm::ivec2& coords, const size_t y0, const
     // buffer->notifySubmitted();
 }
 
+void WorldRenderer::renderChunkGrid(const Camera& camera) {
+    //TODO bad calc
+    float dx = -camera.Position.x + int(camera.Position.x) / Chunk::WIDTH * Chunk::WIDTH;
+    float dy = -camera.Position.y;
+    float dz = -camera.Position.z + int(camera.Position.z) / Chunk::DEPTH * Chunk::DEPTH;
+
+    constexpr int step = 2;
+
+    //TODO immediate mode unsupported in modern OpenGL. Switch to shaders
+    glLineWidth(2.0f);
+    glBegin(GL_LINES);
+    glColor3f(1.0f, 0.0f, 0.0f); // Red color for grid lines
+    for (int z = 0; z <= 0 + Chunk::DEPTH; z += Chunk::DEPTH) {
+        for (int x = 0; x <= 0 + Chunk::WIDTH; x += step) {
+            for (int y = 0; y <= Chunk::HEIGHT; y += step) {
+                // Draw rectangle
+                glVertex3f(x + dx, y + dy, z + dz);
+                glVertex3f(x + step + dx, y + dy, z + dz);
+                // Right edge
+                glVertex3f(x + step + dx, y + dy, z + dz);
+                glVertex3f(x + step + dx, y + step + dy, z + dz);
+                // Bottom edge
+                glVertex3f(x + step + dx, y + step + dy, z + dz);
+                glVertex3f(x + dx, y + step + dy, z + dz);
+                // Left edge
+                glVertex3f(x + dx, y + step + dy, z + dz);
+                glVertex3f(x + dx, y + dy, z + dz);
+            }
+        }
+    }
+    glEnd();
+}
+
 int WorldRenderer::render(World& world, const Camera& camera) {
     const auto& view = camera.getViewMatrix();
     const auto& proj = camera.getProjectionMatrix();
 
     skyRenderer.renderSkybox(view, proj, camera.Position);
+
 
     if (renderWireframe)
         glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
@@ -127,9 +153,6 @@ int WorldRenderer::render(World& world, const Camera& camera) {
         glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 
     shader->use();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, textureManager.getTextureArray());
-    // shader->setSampler("atlasTexture", 0);
     shader->setMat4("view", view);
     shader->setMat4("projection", proj);
 
@@ -138,10 +161,10 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     float height = 100.0f; // height above ground
     float angle = time / 1000.0f / World::DAY_DURATION_SEC; // same as before
 
-    float x = cosf(angle) * radius;
-    float z = sinf(angle) * radius;
-    float y = height; // fixed height
-    shader->setVec3("lightDir", glm::normalize(glm::vec3(x, y, z)));
+    float lightX = cosf(angle) * radius;
+    float lightZ = sinf(angle) * radius;
+    float lightY = height; // fixed height
+    shader->setVec3("lightDir", glm::normalize(glm::vec3(lightX, lightY, lightZ)));
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
@@ -150,31 +173,44 @@ int WorldRenderer::render(World& world, const Camera& camera) {
 
     int subChunksRendered = 0;
 
-    int xMin = camera.Position.x / Chunk::WIDTH - VIEW_DISTANCE;
-    int xMax = camera.Position.x / Chunk::WIDTH + VIEW_DISTANCE;
+    int xMin = camera.Position.x / Chunk::WIDTH - camera.viewDistance;
+    int xMax = camera.Position.x / Chunk::WIDTH + camera.viewDistance;
+    int zMin = camera.Position.z / Chunk::DEPTH - camera.viewDistance;
+    int zMax = camera.Position.z / Chunk::DEPTH + camera.viewDistance;
     int yMin = 0;
     int yMax = Chunk::HEIGHT / Chunk::WIDTH;
-    int zMin = camera.Position.z / Chunk::DEPTH - VIEW_DISTANCE;
-    int zMax = camera.Position.z / Chunk::DEPTH + VIEW_DISTANCE;
 
     std::unordered_set<size_t> rendered_chunks{};
 
+    const int RADIUS = camera.viewDistance * camera.viewDistance * Chunk::WIDTH * Chunk::WIDTH;
+
     for (int x = xMin; x < xMax; x++) {
         for (int z = zMin; z < zMax; z++) {
+            float chunkCenterX = (x + 0.5f) * Chunk::WIDTH;
+            float chunkCenterZ = (z + 0.5f) * Chunk::DEPTH;
+
+            float dx = chunkCenterX - camera.Position.x;
+            float dz = chunkCenterZ - camera.Position.z;
+            float distanceSquared = dx * dx + dz * dz;
+
+            if (distanceSquared > RADIUS) continue;
+
+            // const int LODLevel = std::min(int(sqrtf(distanceSquared) / Chunk::WIDTH / LOD_DISTANCE), LOD_LEVELS);
+
             int y0 = -1;
             int y1 = -1;
 
             const size_t id = Chunk::getId(x, z);
-
             if (!bufferPool.containsBuffer(id)) {
+                // if (LODLevel == 0)
                 ChunkMesher::update(world, {x, z}, bufferPool);
+                // else ChunkMesher::updateLOD(world, {x, z}, bufferPool, LODLevel);
             }
 
-            Chunk& chunk = *world.getChunk(x, z);
-            rendered_chunks.emplace(chunk.getId());
+            rendered_chunks.emplace(Chunk::getId(x, z));
 
             for (int y = yMin; y < yMax; y++) {
-                AABB chunkBox = getChunkBoundingBox(glm::vec3(x * Chunk::WIDTH, y * Chunk::WIDTH, z * Chunk::DEPTH));
+                AABB chunkBox = getSubChunkBoundingBox(glm::vec3(x * Chunk::WIDTH, y * Chunk::WIDTH, z * Chunk::DEPTH));
                 if (frustum.isAABBVisible(chunkBox)) {
                     if (y0 == -1) y0 = y;
                     y1 = y;
@@ -192,8 +228,8 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     }
 
     std::erase_if(world.chunks, [xMin, xMax, zMin, zMax](const auto& iter) {
-        bool erase = iter.second.xCoord < xMin || iter.second.xCoord > xMax ||
-            iter.second.zCoord < zMin || iter.second.zCoord > zMax;
+        bool erase = iter.second.xCoord < xMin - 1 || iter.second.xCoord > xMax + 1 ||
+            iter.second.zCoord < zMin - 1 || iter.second.zCoord > zMax + 1;
         return erase;
     });
 

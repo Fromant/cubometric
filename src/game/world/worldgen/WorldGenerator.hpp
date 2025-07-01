@@ -3,12 +3,12 @@
 #include "noise/PerlinNoise.hpp"
 
 class WorldGenerator {
-    public:
-
+public:
     explicit WorldGenerator(unsigned seed = 0) : terrainNoise(seed) {}
 
-    Chunk& generateChunk(int x,int z, std::unordered_map<size_t, Chunk>& chunks) const {
+    Chunk& generateChunk(int x, int z, std::unordered_map<size_t, Chunk>& chunks) const {
         size_t id = Chunk::getId(x, z);
+
         Chunk& generated = chunks.emplace(id, glm::ivec2{x, z}).first->second;
         auto& blocks = generated.getBlocks();
 
@@ -28,11 +28,11 @@ class WorldGenerator {
                 // Get terrain height with multi-octave noise
                 float noiseVal = terrainNoise.noise(
                     worldX * SCALE,
-                    0.0f,  // Y-coordinate not used for heightmap
+                    0.0f, // Y-coordinate not used for heightmap
                     worldZ * SCALE,
-                    6,      // Octaves
-                    0.5f,   // Persistence
-                    2.0f    // Lacunarity
+                    6, // Octaves
+                    0.5f, // Persistence
+                    2.0f // Lacunarity
                 );
 
                 // Scale to world height
@@ -42,12 +42,15 @@ class WorldGenerator {
                 for (int worldY = 0; worldY < Chunk::HEIGHT; worldY++) {
                     if (worldY > surfaceY) {
                         // blocks[index] = BlockType::AIR;
-                    } else if (worldY == surfaceY) {
-                        blocks.changeBlock({x1,worldY,z1}, BlockType::GRASS);
-                    } else if (worldY > surfaceY - 4) {
-                        blocks.changeBlock({x1,worldY,z1}, BlockType::DIRT);
-                    } else {
-                        blocks.changeBlock({x1,worldY,z1}, BlockType::STONE);
+                    }
+                    else if (worldY == surfaceY) {
+                        blocks.changeBlock({x1, worldY, z1}, BlockType::GRASS);
+                    }
+                    else if (worldY > surfaceY - 4) {
+                        blocks.changeBlock({x1, worldY, z1}, BlockType::DIRT);
+                    }
+                    else {
+                        blocks.changeBlock({x1, worldY, z1}, BlockType::STONE);
                     }
                 }
             }
@@ -57,5 +60,5 @@ class WorldGenerator {
     }
 
 private:
-    PerlinNoise<0> terrainNoise;
+    PerlinNoise<2> terrainNoise;
 };

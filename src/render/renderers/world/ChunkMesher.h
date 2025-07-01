@@ -14,6 +14,7 @@ class ChunkMesher {
 
 public:
     static void update(World& world, const glm::ivec2& pos, MappedBufferPool& pool);
+    static void updateLOD(World& world, const glm::ivec2& pos, MappedBufferPool& pool, int LOD);
 };
 
 

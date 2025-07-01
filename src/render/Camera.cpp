@@ -32,6 +32,10 @@ void Camera::HandleEvent(SDL_Event& event, bool lockMouse) {
         Pitch = glm::clamp(Pitch, -89.0f, 89.0f);
         updateMatrices();
     }
+    else if (event.type == SDL_EVENT_KEY_DOWN) {
+        if (event.key.key == SDLK_EQUALS) viewDistance++;
+        else if (event.key.key == SDLK_MINUS) viewDistance--;
+    }
 }
 
 const glm::mat4& Camera::getViewMatrix() const {

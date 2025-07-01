@@ -1,6 +1,5 @@
 #pragma once
 
-#include "BlockType.h"
 #include "ChunkData.hpp"
 #include "render/Frustum.h"
 
@@ -49,18 +48,17 @@ public:
 
     Chunk() = delete;
 
-    Chunk(Chunk&& other) noexcept {
+    Chunk(Chunk&& other) noexcept : box(other.box) {
         data = std::move(other.data);
         xCoord = other.xCoord;
         zCoord = other.zCoord;
-        box = other.box;
     }
 
     size_t getId() const {
         return Chunk::getId(xCoord, zCoord);
     }
 
-    static size_t getId(int xCoord, int zCoord) {
+    static size_t getId(unsigned int xCoord, unsigned int zCoord) {
         constexpr uint64_t OFFSET = 1 << 20; // 2^20 (handles ±1M chunks)
         return mortonEncode(xCoord + OFFSET, zCoord + OFFSET);
     }
