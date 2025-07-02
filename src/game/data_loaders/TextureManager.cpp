@@ -109,7 +109,9 @@ GLuint TextureManager::getTextureLayer(const std::string& name) const {
     return it->second;
 }
 
-GLuint TextureManager::loadTexture2D(const std::string& name, GLuint internalFormat, GLuint type, GLuint minFilter, GLuint magFilter) {
+GLuint TextureManager::loadTexture2D(const std::string& name, GLuint internalFormat, GLuint type, GLuint minFilter,
+                                     GLuint magFilter) {
+    stbi_set_flip_vertically_on_load(0);
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -130,6 +132,11 @@ GLuint TextureManager::loadTexture2D(const std::string& name, GLuint internalFor
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+
+    if ((minFilter >= GL_NEAREST_MIPMAP_NEAREST && minFilter <= GL_LINEAR_MIPMAP_LINEAR) || (magFilter >=
+        GL_NEAREST_MIPMAP_NEAREST && magFilter <= GL_LINEAR_MIPMAP_LINEAR))
+        glGenerateMipmap(GL_TEXTURE_2D);
+
     return textureID;
 }
 

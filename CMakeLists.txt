@@ -58,6 +58,8 @@ add_executable(${PROJECT_NAME} src/main.cpp
         src/game/world/worldgen/noise/PerlinNoise.cpp
         src/game/world/worldgen/noise/PerlinNoise.hpp
         src/game/world/worldgen/noise/Interpolator.hpp
+        src/render/renderers/world/QuadRenderer.cpp
+        src/render/renderers/world/QuadRenderer.hpp
 )
 
 add_custom_target(copy-runtime-files ALL

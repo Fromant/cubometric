@@ -144,7 +144,7 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     const auto& view = camera.getViewMatrix();
     const auto& proj = camera.getProjectionMatrix();
 
-    skyRenderer.renderSkybox(view, proj, camera.Position);
+    skyRenderer.renderSkybox(view, proj, camera);
 
 
     if (renderWireframe)

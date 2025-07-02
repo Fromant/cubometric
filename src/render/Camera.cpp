@@ -21,6 +21,8 @@ void Camera::Update(float deltaTime) {
     if (keys[SDL_SCANCODE_D]) Position += Right * velocity;
     if (keys[SDL_SCANCODE_SPACE]) Position.y += velocity;
     if (keys[SDL_SCANCODE_LSHIFT]) Position.y -= velocity;
+    if (keys[SDL_SCANCODE_C]) changeAspectRatio(aspectRatio, FOV / 4);
+    else changeAspectRatio(aspectRatio);
 
     updateMatrices();
 }
@@ -46,22 +48,22 @@ const glm::mat4& Camera::getProjectionMatrix() const {
     return projection;
 }
 
-void Camera::changeAspectRatio(float aspectRatio) {
+void Camera::changeAspectRatio(float aspectRatio, float fov) {
     this->aspectRatio = aspectRatio;
-    projection = glm::perspective(glm::radians(FOV), aspectRatio, zNear, zFar);
+    if (fov < 0) fov = FOV;
+    projection = glm::perspective(glm::radians(fov), aspectRatio, zNear, zFar);
 }
 
 
 void Camera::updateMatrices() {
-    static const glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::vec3 front;
     front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
     front.y = sin(glm::radians(Pitch));
     front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
     Front = glm::normalize(front);
     Right = glm::normalize(glm::cross(Front, WorldUp));
-
-    view = glm::lookAt(Position, Position + Front, Up);
+    Up = glm::cross(Right, Front);
+    view = glm::lookAt(Position, Position + Front, WorldUp);
 }
 
 

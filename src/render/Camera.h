@@ -26,12 +26,18 @@ public:
     Frustum getFrustum() const;
 
     const glm::vec3& getDirection() const { return Front; }
+    const glm::vec3& getPosition() const {return Position; }
 
-    void changeAspectRatio(float aspectRatio);
+    void changeAspectRatio(float aspectRatio, float fov = -1);
+
+    const glm::vec3& getRight() const { return Right; }
+    const glm::vec3& getFront() const { return Front; }
+    const glm::vec3& getUp() const { return Up; }
 
 private:
     glm::vec3 Front{1, 0, 0};
     glm::vec3 Right{0, 0, 1};
+    glm::vec3 Up{0, 1, 0};
 
     glm::mat4 view{};
     glm::mat4 projection{};

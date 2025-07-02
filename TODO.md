@@ -3,6 +3,7 @@
 - [x] Move to mappedbufferpool in world rendering
 - [x] Draw debug info (also redo debugDrawer to screenSpace coords `[-1; 1]`)
 - [ ] Multithreading (draw thread, worldgen thread, mesher thread)
+- [ ] Physics engine, world updates, input system
 - [ ] Block model loadings
 - [ ] Add items
 - [ ] Add entities(?) (separate buffer tho 100%)

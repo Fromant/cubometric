@@ -11,7 +11,9 @@ Right now it's unplayable stone simulator written in CPP+OpenGL+GLAD+SDL+glm+...
 - F5 to open frame time graph
 - F4 to enable wireframe rendering
 - B to switch mouse capturing
-- LMB to capture lock&capture mouse
+- LMB to capture mouse
+- C for zoom
+- '+' and '-' - control chunk render distance
 
 # Compile & run:
 - Make sure dependencies are installed (sdl3, opengl, glad, glm) (I recommend using `vcpkg install glm` and etc)
@@ -25,5 +27,9 @@ Right now it's unplayable stone simulator written in CPP+OpenGL+GLAD+SDL+glm+...
 - SDL 3.2.4
 - glad
 - glm
+
+# Texure units:
+- 0 - main 16x16x2048 2d texture array
+- 1 - 64x64 sky atlas
 
 
