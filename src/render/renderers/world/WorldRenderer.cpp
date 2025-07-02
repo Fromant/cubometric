@@ -60,9 +60,9 @@ void WorldRenderer::renderSubChunk(const glm::ivec3& coords,
     cmds.clear();
 
     if (coords.x * Chunk::WIDTH - static_cast<int>(cameraCoords.x) < Chunk::WIDTH)
-        renderSubChunkFacing(buffer, coords.y, SOUTH, cmds);
+        renderSubChunkFacing(buffer, coords.y, EAST, cmds);
     if (static_cast<int>(cameraCoords.x) - coords.x * Chunk::WIDTH < Chunk::WIDTH)
-        renderSubChunkFacing(buffer, coords.y, NORTH, cmds);
+        renderSubChunkFacing(buffer, coords.y, WEST, cmds);
 
     if (coords.y * Chunk::SUB_HEIGHT - static_cast<int>(cameraCoords.y) < Chunk::SUB_HEIGHT)
         renderSubChunkFacing(buffer, coords.y, UP, cmds);
@@ -70,9 +70,9 @@ void WorldRenderer::renderSubChunk(const glm::ivec3& coords,
         renderSubChunkFacing(buffer, coords.y, DOWN, cmds);
 
     if (coords.z * Chunk::DEPTH - static_cast<int>(cameraCoords.z) < Chunk::DEPTH)
-        renderSubChunkFacing(buffer, coords.y, WEST, cmds);
+        renderSubChunkFacing(buffer, coords.y, NORTH, cmds);
     if (static_cast<int>(cameraCoords.z) - coords.z * Chunk::DEPTH < Chunk::DEPTH)
-        renderSubChunkFacing(buffer, coords.y, EAST, cmds);
+        renderSubChunkFacing(buffer, coords.y, SOUTH, cmds);
 
     if (cmds.size() == 0) return;
     if (!bufferBind) {
@@ -108,36 +108,7 @@ void WorldRenderer::renderChunk(const glm::ivec2& coords, const size_t y0, const
 }
 
 void WorldRenderer::renderChunkGrid(const Camera& camera) {
-    //TODO bad calc
-    float dx = -camera.Position.x + int(camera.Position.x) / Chunk::WIDTH * Chunk::WIDTH;
-    float dy = -camera.Position.y;
-    float dz = -camera.Position.z + int(camera.Position.z) / Chunk::DEPTH * Chunk::DEPTH;
 
-    constexpr int step = 2;
-
-    //TODO immediate mode unsupported in modern OpenGL. Switch to shaders
-    glLineWidth(2.0f);
-    glBegin(GL_LINES);
-    glColor3f(1.0f, 0.0f, 0.0f); // Red color for grid lines
-    for (int z = 0; z <= 0 + Chunk::DEPTH; z += Chunk::DEPTH) {
-        for (int x = 0; x <= 0 + Chunk::WIDTH; x += step) {
-            for (int y = 0; y <= Chunk::HEIGHT; y += step) {
-                // Draw rectangle
-                glVertex3f(x + dx, y + dy, z + dz);
-                glVertex3f(x + step + dx, y + dy, z + dz);
-                // Right edge
-                glVertex3f(x + step + dx, y + dy, z + dz);
-                glVertex3f(x + step + dx, y + step + dy, z + dz);
-                // Bottom edge
-                glVertex3f(x + step + dx, y + step + dy, z + dz);
-                glVertex3f(x + dx, y + step + dy, z + dz);
-                // Left edge
-                glVertex3f(x + dx, y + step + dy, z + dz);
-                glVertex3f(x + dx, y + dy, z + dz);
-            }
-        }
-    }
-    glEnd();
 }
 
 int WorldRenderer::render(World& world, const Camera& camera) {

@@ -9,28 +9,6 @@
 class CubeModel {
     constexpr static std::array<FaceInstance, 6> cubeFaces{
             FaceInstance{
-                //back face
-                std::array<Vertex, 6>{
-                    Vertex{0, 0, 1, 0, 0},
-                    Vertex{1, 0, 1, 1, 0},
-                    Vertex{1, 1, 1, 1, 1},
-                    Vertex{1, 1, 1, 1, 1},
-                    Vertex{0, 1, 1, 0, 1},
-                    Vertex{0, 0, 1, 0, 0}
-                }
-            },
-            FaceInstance{
-                // Front face
-                std::array<Vertex, 6>{
-                    Vertex{1, 0, 0, 0, 0},
-                    Vertex{0, 0, 0, 1, 0},
-                    Vertex{0, 1, 0, 1, 1},
-                    Vertex{0, 1, 0, 1, 1},
-                    Vertex{1, 1, 0, 0, 1},
-                    Vertex{1, 0, 0, 0, 0}
-                }
-            },
-            FaceInstance{
                 // Left face
                 std::array<Vertex, 6>{
                     Vertex{0, 0, 0, 0, 0},
@@ -50,6 +28,28 @@ class CubeModel {
                     Vertex{1, 1, 0, 1, 1},
                     Vertex{1, 1, 1, 0, 1},
                     Vertex{1, 0, 1, 0, 0}
+                }
+            },
+            FaceInstance{
+                // Front face
+                std::array<Vertex, 6>{
+                    Vertex{1, 0, 0, 0, 0},
+                    Vertex{0, 0, 0, 1, 0},
+                    Vertex{0, 1, 0, 1, 1},
+                    Vertex{0, 1, 0, 1, 1},
+                    Vertex{1, 1, 0, 0, 1},
+                    Vertex{1, 0, 0, 0, 0}
+                }
+            },
+            FaceInstance{
+                //back face
+                std::array<Vertex, 6>{
+                    Vertex{0, 0, 1, 0, 0},
+                    Vertex{1, 0, 1, 1, 0},
+                    Vertex{1, 1, 1, 1, 1},
+                    Vertex{1, 1, 1, 1, 1},
+                    Vertex{0, 1, 1, 0, 1},
+                    Vertex{0, 0, 1, 0, 0}
                 }
             },
             FaceInstance{
@@ -78,7 +78,7 @@ class CubeModel {
 
 public:
     static constexpr FaceInstance getFace(const Facing f, const glm::ivec3& pos, const int layer,
-                                          const glm::ivec3& scale = {1,1,1}) {
+                                          const glm::ivec3& scale = {1, 1, 1}) {
         FaceInstance tr = cubeFaces[f];
 
         for (auto& vertex : tr.vertices) {
