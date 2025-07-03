@@ -2,137 +2,6 @@
 
 #include <glm/vec2.hpp>
 
-void ChunkMesher::updateLOD(World& world, const glm::ivec2& pos, MappedBufferPool& pool, int LOD) {
-    for (auto& b : buffer)
-        for (auto& b1 : b)
-            b1.clear();
-
-    std::array<std::array<GPUBuffer::GPUBufferView, 6>, Chunk::SUB_COUNT> subChunks{};
-
-    LowDetailChunk* chunk = world.getLowDetailChunk(pos.x, pos.y, LOD);
-    if (!chunk) return;
-
-    const LowDetailChunkData& chunkData = chunk->getBlocks();
-
-    size_t total_size = 0;
-
-    const glm::ivec3 scale{1 << chunk->getLODLevel()};
-
-    for (int subChunkY = 0; subChunkY < Chunk::SUB_COUNT; subChunkY++) {
-        for (int y = subChunkY * chunkData.height / Chunk::SUB_COUNT; y < (subChunkY + 1) * chunkData.height /
-             Chunk::SUB_COUNT; y++) {
-            for (int z = 0; z < chunkData.depth; z++) {
-                for (int x = 0; x < chunkData.width; x++) {
-                    if (!chunkData.containsBlock({x, y, z})) continue;
-                    //not air, add to mesh
-
-                    // const int layer = textureManager.getTextureLayer("assets/textures/blocks/dirt.png");
-                    const int layer = 0;
-                    glm::ivec3 pos{x, y, z};
-                    pos *= scale;
-                    pos.y &= 0x1F;
-
-                    //check z+ (west) (left)
-                    if (z == chunkData.depth - 1) {
-                        if (auto nextChunk = world.getLowDetailChunk(pos.x, pos.y + 1, std::max(LOD - 1, 1)); !nextChunk
-                            ||
-                            !nextChunk->getBlocks().containsBlock({x, y, 0})) {
-                            buffer[subChunkY][WEST].emplace_back(
-                                CubeModel::getFace(WEST, pos, layer, scale));
-                        }
-                    }
-                    else if (!chunkData.containsBlock({x, y, z + 1})) {
-                        //if air, add side to mesh
-                        buffer[subChunkY][WEST].emplace_back(CubeModel::getFace(WEST, pos, layer, scale));
-                        buffer[subChunkY][WEST].emplace_back(CubeModel::getFace(WEST, pos, layer, scale));
-                    }
-
-                    //check z- (east) (right)
-                    if (z == 0) {
-                        if (auto nextChunk = world.getLowDetailChunk(pos.x, pos.y - 1, std::max(LOD - 1, 1));
-                            !nextChunk ||
-                            !nextChunk->getBlocks().containsBlock({x, y, chunkData.depth - 1})) {
-                            buffer[subChunkY][EAST].emplace_back(
-                                CubeModel::getFace(EAST, pos, layer, scale));
-                        }
-                    }
-                    else if (!chunkData.containsBlock({x, y, z - 1})) {
-                        //if air, add side to mesh
-                        buffer[subChunkY][EAST].emplace_back(CubeModel::getFace(EAST, pos, layer, scale));
-                    }
-
-                    //check x+ (south) (back)
-                    if (x == (chunkData.width - 1)) {
-                        if (auto nextChunk = world.getLowDetailChunk(pos.x + 1, pos.y, std::max(LOD - 1, 1));
-                            !nextChunk ||
-                            !nextChunk->getBlocks().containsBlock({0, y, z})) {
-                            buffer[subChunkY][SOUTH].emplace_back(
-                                CubeModel::getFace(SOUTH, pos, layer, scale));
-                        }
-                    }
-                    else if (!chunkData.containsBlock({x + 1, y, z})) {
-                        //if air, add side to mesh
-                        buffer[subChunkY][SOUTH].emplace_back(CubeModel::getFace(SOUTH, pos, layer, scale));
-                    }
-
-                    //check x- (north) (front)
-                    if (x == 0) {
-                        if (auto nextChunk = world.getLowDetailChunk(pos.x - 1, pos.y, std::max(LOD - 1, 1));
-                            !nextChunk ||
-                            !nextChunk->getBlocks().containsBlock({chunkData.width - 1, y, z})) {
-                            buffer[subChunkY][NORTH].emplace_back(
-                                CubeModel::getFace(NORTH, pos, layer, scale));
-                        }
-                    }
-                    else if (!chunkData.containsBlock({x - 1, y, z})) {
-                        //if air, add side to mesh
-                        buffer[subChunkY][NORTH].emplace_back(CubeModel::getFace(NORTH, pos, layer, scale));
-                    }
-
-                    //check y+ (top)
-                    if (y == chunkData.height - 1) {
-                        buffer[subChunkY][UP].emplace_back(CubeModel::getFace(UP, pos, layer, scale));
-                    }
-                    else if (!chunkData.containsBlock({x, y + 1, z})) {
-                        //if air, add side to mesh
-                        buffer[subChunkY][UP].emplace_back(CubeModel::getFace(UP, pos, layer, scale));
-                    }
-
-                    //check y- (bottom)
-                    if (y == 0) {
-                        buffer[subChunkY][DOWN].emplace_back(CubeModel::getFace(DOWN, pos, layer, scale));
-                    }
-                    else if (!chunkData.containsBlock({x, z, y - 1})) {
-                        //if air, add side to mesh
-                        buffer[subChunkY][DOWN].emplace_back(CubeModel::getFace(DOWN, pos, layer, scale));
-                    }
-                }
-            }
-        }
-        for (int i = 0; i < 6; i++) {
-            subChunks[subChunkY][i].size = buffer[subChunkY][i].size();
-            subChunks[subChunkY][i].offset = total_size;
-            total_size += buffer[subChunkY][i].size();
-        }
-    }
-
-    const size_t chunkID = Chunk::getId(pos.x, pos.y);
-
-    auto* gpuBuffer = pool.getBuffer(chunkID);
-    if (!gpuBuffer)
-        gpuBuffer = pool.createBuffer(chunkID, total_size * sizeof(FaceInstance));
-
-    totalFaces.reserve(total_size);
-    totalFaces.clear();
-    for (const auto& subChunk : buffer) {
-        for (const auto& dir : subChunk) {
-            totalFaces.insert(totalFaces.end(), dir.begin(), dir.end());
-        }
-    }
-
-    gpuBuffer->write(totalFaces.data(), totalFaces.size() * sizeof(FaceInstance), 0, subChunks);
-}
-
 std::array<bool, 6> ChunkMesher::checkAdjacentBlocks(World& world, const ChunkData& chunkData,
                                                      const glm::ivec2& chunkPos,
                                                      const glm::ivec3& blockPos) {
@@ -193,18 +62,173 @@ std::array<bool, 6> ChunkMesher::checkAdjacentBlocks(World& world, const ChunkDa
     return res;
 }
 
-void ChunkMesher::update(World& world, const glm::ivec2& chunkPos, MappedBufferPool& pool) {
-    for (auto& b : buffer)
-        for (auto& b1 : b)
-            b1.clear();
+glm::ivec3 posFromHash32(short hash) {
+    int x = hash & 0x1F;
+    int z = (hash >> 5) & 0x1F;
+    int y = (hash >> 10) & 0x1F;
+    return {x, y, z};
+}
+
+short hashFromPos(const glm::ivec3& pos) {
+    return ChunkData::getIndex(pos);
+}
+
+void ChunkMesher::greedyMesh() {
+    // Clear previous data
+    for (auto& faces : greedChunkFaces)
+        for (auto& dir : faces) dir.clear();
+
+    // Define plane axes and fixed axis for each facing
+    static constexpr std::tuple<int, int, int> axisMap[6] = {
+            {2, 1, 0}, // LEFT:   plane axes Z(axis1) and Y(axis2), fixed X
+            {2, 1, 0}, // RIGHT:  plane axes Z(axis1) and Y(axis2), fixed X
+            {0, 1, 2}, // FRONT:  plane axes X(axis1) and Y(axis2), fixed Z
+            {0, 1, 2}, // BACK:   plane axes X(axis1) and Y(axis2), fixed Z
+            {0, 2, 1}, // TOP:    plane axes X(axis1) and Z(axis2), fixed Y
+            {0, 2, 1} // BOTTOM: plane axes X(axis1) and Z(axis2), fixed Y
+        };
+
+    for (int subChunk = 0; subChunk < Chunk::SUB_COUNT; subChunk++) {
+        for (int facing = 0; facing < 6; facing++) {
+            // Extract axes configuration
+            const auto& axes = axisMap[facing];
+            const int axis1 = std::get<0>(axes); // First plane axis
+            const int axis2 = std::get<1>(axes); // Second plane axis
+            const int fixedAxis = std::get<2>(axes); // Fixed axis
+
+            // Iterate through all possible fixed axis positions
+            for (int fixedVal = 0; fixedVal < Chunk::WIDTH; fixedVal++) {
+                for (auto && i : processed)
+                    i = false;
+
+                for (int a2 = 0; a2 < Chunk::WIDTH; a2++) {
+                    for (int a1 = 0; a1 < Chunk::WIDTH; a1++) {
+                        // Create position vector with fixed axis value
+                        glm::ivec3 pos(0);
+                        pos[axis1] = a1;
+                        pos[axis2] = a2;
+                        pos[fixedAxis] = fixedVal;
+
+                        const short hashPos = hashFromPos(pos);
+                        const size_t idx = a1 + a2 * Chunk::WIDTH;
+
+                        // Skip if already processed or no face
+                        if (processed[idx] || !chunkFaces[subChunk][facing].contains(hashPos))
+                            continue;
+
+                        const unsigned layer = chunkFaces[subChunk][facing][hashPos];
+                        int width = 1;
+                        int height = 1;
+
+                        // Find maximum width (along axis1)
+                        for (int w = a1 + 1; w < Chunk::WIDTH; w++) {
+                            glm::ivec3 testPos = pos;
+                            testPos[axis1] = w;
+                            const short testHash = hashFromPos(testPos);
+                            const size_t testIdx = w + a2 * Chunk::WIDTH;
+
+                            if (processed[testIdx] ||
+                                !chunkFaces[subChunk][facing].contains(testHash) ||
+                                chunkFaces[subChunk][facing][testHash] != layer) {
+                                break;
+                            }
+                            width++;
+                        }
+
+                        // Find maximum height (along axis2)
+                        bool heightValid = true;
+                        for (int h = a2 + 1; h < Chunk::WIDTH; h++) {
+                            for (int w = a1; w < a1 + width; w++) {
+                                glm::ivec3 testPos = pos;
+                                testPos[axis1] = w;
+                                testPos[axis2] = h;
+                                const short testHash = hashFromPos(testPos);
+                                const size_t testIdx = w + h * Chunk::WIDTH;
+
+                                if (processed[testIdx] ||
+                                    !chunkFaces[subChunk][facing].contains(testHash) ||
+                                    chunkFaces[subChunk][facing][testHash] != layer) {
+                                    heightValid = false;
+                                    break;
+                                }
+                            }
+                            if (!heightValid) break;
+                            height++;
+                        }
+
+                        // Mark entire rectangle as processed
+                        for (int h = a2; h < a2 + height; h++) {
+                            for (int w = a1; w < a1 + width; w++) {
+                                processed[w + h * Chunk::WIDTH] = true;
+                            }
+                        }
+
+                        // Create position with actual fixed value
+                        glm::ivec3 actualPos(0);
+                        actualPos[axis1] = a1;
+                        actualPos[axis2] = a2;
+                        actualPos[fixedAxis] = fixedVal;
+
+                        // Calculate quad size
+                        glm::ivec3 size(1);
+                        size[axis1] = width;
+                        size[axis2] = height;
+
+                        // Add merged face
+                        greedChunkFaces[subChunk][facing].emplace_back(
+                            CubeModel::getFace(
+                                static_cast<Facing>(facing),
+                                actualPos,
+                                layer,
+                                size,
+                                glm::ivec2{size[axis1], size[axis2]}
+                            )
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ChunkMesher::generateChunkMesh(const glm::ivec2& chunkPos, MappedBufferPool& pool) {
+    size_t total_size = 0;
 
     std::array<std::array<GPUBuffer::GPUBufferView, 6>, Chunk::SUB_COUNT> subChunks{};
+
+    for (int subChunkY = 0; subChunkY < Chunk::SUB_COUNT; subChunkY++) {
+        for (int facing = 0; facing < 6; facing++) {
+            subChunks[subChunkY][facing].size = greedChunkFaces[subChunkY][facing].size();
+            subChunks[subChunkY][facing].offset = total_size;
+            total_size += greedChunkFaces[subChunkY][facing].size();
+        }
+    }
+
+    const size_t chunkID = Chunk::getId(chunkPos.x, chunkPos.y);
+
+    auto* gpuBuffer = pool.getBuffer(chunkID);
+    if (!gpuBuffer)
+        gpuBuffer = pool.createBuffer(chunkID, total_size * sizeof(FaceMesh));
+
+    totalFaces.reserve(total_size);
+    totalFaces.clear();
+    for (const auto& subChunk : greedChunkFaces) {
+        for (int facing = 0; facing < 6; facing++) {
+            totalFaces.insert(totalFaces.end(), subChunk[facing].begin(), subChunk[facing].end());
+        }
+    }
+
+    gpuBuffer->write(totalFaces.data(), totalFaces.size() * sizeof(FaceMesh), 0, subChunks);
+}
+
+void ChunkMesher::generateChunkMeshData(World& world, const glm::ivec2& chunkPos) {
+    // clear all previous data
+    for (auto& subChunk : chunkFaces)
+        for (auto& dir : subChunk) dir.clear();
 
     Chunk* chunk = world.getChunk(chunkPos.x, chunkPos.y);
     if (!chunk) return;
     const ChunkData& chunkData = chunk->getBlocks();
-
-    size_t total_size = 0;
 
     for (int y = 0; y < Chunk::HEIGHT; y++) {
         int subChunkY = y / Chunk::SUB_HEIGHT;
@@ -221,33 +245,63 @@ void ChunkMesher::update(World& world, const glm::ivec2& chunkPos, MappedBufferP
 
                 for (int f = 0; f < 6; f++) {
                     if (res[f])
-                        buffer[subChunkY][f].emplace_back(
-                            CubeModel::getFace(static_cast<Facing>(f), blockPos, layer));
+                        chunkFaces[subChunkY][f][chunkData.getIndex(blockPos)] = layer;
                 }
             }
         }
-
-        if (y % Chunk::SUB_HEIGHT == Chunk::SUB_HEIGHT - 1)
-            for (int i = 0; i < 6; i++) {
-                subChunks[subChunkY][i].size = buffer[subChunkY][i].size();
-                subChunks[subChunkY][i].offset = total_size;
-                total_size += buffer[subChunkY][i].size();
-            }
     }
+}
 
-    const size_t chunkID = Chunk::getId(chunkPos.x, chunkPos.y);
+// Greedy meshing for a 2D plane
+void greedyMeshPlane(const std::function<BlockType(int, int)>& sample,
+                     const std::function<void(int, int, int, int, BlockType)>& addQuad,
+                     int width, int height) {
+    std::vector<bool> processed(width * height, false);
 
-    auto* gpuBuffer = pool.getBuffer(chunkID);
-    if (!gpuBuffer)
-        gpuBuffer = pool.createBuffer(chunkID, total_size * sizeof(FaceInstance));
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            if (processed[x + y * width]) continue;
 
-    totalFaces.reserve(total_size);
-    totalFaces.clear();
-    for (const auto& subChunk : buffer) {
-        for (const auto& dir : subChunk) {
-            totalFaces.insert(totalFaces.end(), dir.begin(), dir.end());
+            BlockType current = sample(x, y);
+            if (current == BlockType::AIR) continue;
+
+            // Find run width
+            int runWidth = 1;
+            while (x + runWidth < width) {
+                BlockType next = sample(x + runWidth, y);
+                if (next != current || processed[(x + runWidth) + y * width]) break;
+                runWidth++;
+            }
+
+            // Find run height
+            int runHeight = 1;
+            bool heightValid = true;
+            while (y + runHeight < height && heightValid) {
+                for (int dx = 0; dx < runWidth; dx++) {
+                    BlockType next = sample(x + dx, y + runHeight);
+                    if (next != current || processed[(x + dx) + (y + runHeight) * width]) {
+                        heightValid = false;
+                        break;
+                    }
+                }
+                if (heightValid) runHeight++;
+            }
+
+            // Mark processed
+            for (int dy = 0; dy < runHeight; dy++) {
+                for (int dx = 0; dx < runWidth; dx++) {
+                    processed[(x + dx) + (y + dy) * width] = true;
+                }
+            }
+
+            // Add quad
+            addQuad(x, y, runWidth, runHeight, current);
         }
     }
+}
 
-    gpuBuffer->write(totalFaces.data(), totalFaces.size() * sizeof(FaceInstance), 0, subChunks);
+void ChunkMesher::update(World& world, const glm::ivec2& chunkPos, MappedBufferPool& pool) {
+    generateChunkMeshData(world, chunkPos);
+    greedyMesh();
+    generateChunkMesh(chunkPos, pool);
 }

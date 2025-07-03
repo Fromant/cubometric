@@ -5,12 +5,12 @@
 
 #include "Vertex.h"
 
-struct FaceInstance {
+struct FaceMesh {
     std::array<Vertex, 6> vertices;
 
-    FaceInstance() = delete;
+    FaceMesh() = delete;
 
-    constexpr explicit FaceInstance(const std::array<Vertex, 6> &vertices) : vertices(vertices) {
+    constexpr explicit FaceMesh(const std::array<Vertex, 6> &vertices) : vertices(vertices) {
     }
 };
 

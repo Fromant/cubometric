@@ -8,11 +8,12 @@
 #include "BlockType.h"
 
 class ChunkData {
+public:
     static size_t getIndex(const glm::ivec3& pos) {
         return pos.x + pos.y * WIDTH * DEPTH + pos.z * WIDTH;
     }
 
-public:
+
     static constexpr int WIDTH = 32;
     static constexpr int HEIGHT = 256;
     static constexpr int DEPTH = 32;
@@ -39,6 +40,10 @@ public:
     }
 
     BlockType& getBlock(const glm::ivec3& pos) {
+        return blocks[getIndex(pos)];
+    }
+
+    const BlockType& getBlock(const glm::ivec3& pos) const {
         return blocks[getIndex(pos)];
     }
 

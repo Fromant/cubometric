@@ -20,7 +20,7 @@ void main() {
     vWorldPos = vec3(x, y, z) + vec3(chunkCoords * CHUNK_SIZE);
 
     // Texture coordinates (from bits 12 and 13)
-    TexCoord = vec3((aPos >> 18) & 1, (aPos >> 19) & 1, (aPos>>20)&0x7FF);
+    TexCoord = vec3((aPos >> 18) & 0x3F, (aPos >> 24) & 0x3F, (aPos>>30)&0x7FF);
 
     // Transform to clip space
     gl_Position = projection * view * vec4(vWorldPos, 1.0);

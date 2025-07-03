@@ -74,7 +74,7 @@ void WorldRenderer::renderSubChunk(const glm::ivec3& coords,
     if (static_cast<int>(cameraCoords.z) - coords.z * Chunk::DEPTH < Chunk::DEPTH)
         renderSubChunkFacing(buffer, coords.y, SOUTH, cmds);
 
-    if (cmds.size() == 0) return;
+    if (cmds.empty()) return;
     if (!bufferBind) {
         bufferBind = true;
         buffer->bind();
