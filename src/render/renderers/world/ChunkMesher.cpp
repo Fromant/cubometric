@@ -98,7 +98,7 @@ void ChunkMesher::greedyMesh() {
 
             // Iterate through all possible fixed axis positions
             for (int fixedVal = 0; fixedVal < Chunk::WIDTH; fixedVal++) {
-                for (auto && i : processed)
+                for (auto&& i : processed)
                     i = false;
 
                 for (int a2 = 0; a2 < Chunk::WIDTH; a2++) {
@@ -210,15 +210,14 @@ void ChunkMesher::generateChunkMesh(const glm::ivec2& chunkPos, MappedBufferPool
     if (!gpuBuffer)
         gpuBuffer = pool.createBuffer(chunkID, total_size * sizeof(FaceMesh));
 
-    totalFaces.reserve(total_size);
-    totalFaces.clear();
-    for (const auto& subChunk : greedChunkFaces) {
+    gpuBuffer->resize(total_size * sizeof(FaceMesh));
+    for (int subChunk = 0; subChunk < Chunk::SUB_COUNT; subChunk++) {
         for (int facing = 0; facing < 6; facing++) {
-            totalFaces.insert(totalFaces.end(), subChunk[facing].begin(), subChunk[facing].end());
+            gpuBuffer->writeUnsynced(greedChunkFaces[subChunk][facing].data(),
+                                     subChunks[subChunk][facing].size * sizeof(FaceMesh), subChunks[subChunk][facing].offset* sizeof(FaceMesh), subChunks);
         }
     }
-
-    gpuBuffer->write(totalFaces.data(), totalFaces.size() * sizeof(FaceMesh), 0, subChunks);
+    gpuBuffer->sync();
 }
 
 void ChunkMesher::generateChunkMeshData(World& world, const glm::ivec2& chunkPos) {

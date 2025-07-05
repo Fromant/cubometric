@@ -63,7 +63,7 @@ public:
     }
 
     void write(const void* data, size_t size, size_t offset,
-               const std::array<std::array<GPUBufferView, 6>, Chunk::HEIGHT / Chunk::WIDTH>& subChunks) {
+               const std::array<std::array<GPUBufferView, 6>, Chunk::SUB_COUNT>& subChunks) {
         this->subChunks = subChunks;
         if (offset + size > m_capacity) {
             resize(calculateGrowth(offset + size));
@@ -71,9 +71,26 @@ public:
 
         waitSync();
         memcpy(static_cast<char*>(m_mapped) + offset, data, size);
-        m_size = size;
+        m_size = size+offset;
         glBindBuffer(GL_ARRAY_BUFFER, m_id);
         glFlushMappedBufferRange(GL_ARRAY_BUFFER, static_cast<long long>(offset), static_cast<long long>(size));
+    }
+
+    void writeUnsynced(const void* data, size_t size, size_t offset,
+                       const std::array<std::array<GPUBufferView, 6>, Chunk::SUB_COUNT>& subChunks) {
+        this->subChunks = subChunks;
+        if (offset + size > m_capacity) {
+            resize(calculateGrowth(offset + size));
+        }
+        m_size = offset + size;
+        memcpy(static_cast<char*>(m_mapped) + offset, data, size);
+    }
+
+    void sync() {
+        waitSync();
+        glBindBuffer(GL_ARRAY_BUFFER, m_id);
+        glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, m_size);
+
     }
 
     void resize(size_t newCapacity) {

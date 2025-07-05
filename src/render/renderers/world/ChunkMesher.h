@@ -13,9 +13,6 @@ class ChunkMesher {
     static inline std::array<std::array<std::vector<FaceMesh>, 6>, Chunk::SUB_COUNT> greedChunkFaces;
     static inline std::vector<bool> processed = std::vector<bool>(Chunk::WIDTH * Chunk::WIDTH, false);
 
-    // static inline std::array<std::array<std::vector<FaceMesh>, 6>, Chunk::SUB_COUNT> chunkMesh{};
-    static inline std::vector<FaceMesh> totalFaces;
-
     static std::array<bool, 6>
     checkAdjacentBlocks(World& world, const ChunkData& chunkData, const glm::ivec2& chunkPos,
                         const glm::ivec3& blockPos);

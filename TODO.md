@@ -21,8 +21,11 @@
 - [x] better world structuring
 - [x] switch texturing to texture arrays instead of textures
 - [x] Add diffuse lightning
-- [ ] Greedy mesher
+- [X] Greedy mesher
 - [ ] LODs
+- [ ] Everything to one gpu buffer
+- [ ] ShadowMap (partial?)
+- [ ] Bloom
 - [ ] Chunk border rendering
 - [ ] Add baked lightning into vertices (for other light sources and ambient occlusion)
 - [ ] Procedural sky
