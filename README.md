@@ -16,17 +16,21 @@ Right now it's unplayable stone simulator written in CPP+OpenGL+GLAD+SDL+glm+...
 - '+' and '-' - control chunk render distance
 
 # Compile & run:
-- Make sure dependencies are installed (sdl3, opengl, glad, glm) (I recommend using `vcpkg install glm` and etc)
-- Build with cmake
-- Before running, make sure SDL3.dll is located inside build folder (Important!)
-- ??? Profit
-- If something off, try running application inside build folder
+- Make sure vcpkg is installed and a enviroment variables are set: `VCPKG_ROOT` (check via `$ENV:VCPKG_ROOT`). 
+- Default vcpkg triplets can be set in enviroment variables (`VCPKG_DEFAULT_TRIPLET` and `VCPKG_DEFAULT_HOST_TRIPLET`)
+- If needed, change used triplet in CMakePresets.json (`VCPKG_TARGET_TRIPLET`) 
+- vcpkg cmake toolchain will be used automaticallly
+- build with vscode Cmake tools (using CMakePresets)
+- Before running, copy SDL3.dll from build/type/_deps/sdl3-build or download it (same version as SDL3 in deps)
+- Run application inside build folder
 
 # Dependencies:
 - OpenGL 4.4+
-- SDL 3.2.4
+- SDL 3.2.16
 - glad
 - glm
+- nlohmann-json 3.12.0
+- 
 
 # Texure units:
 - 0 - main 16x16x2048 2d texture array

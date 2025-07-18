@@ -1,24 +1,18 @@
 cmake_minimum_required(VERSION 3.15)
 project(IndustrialHard)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-static -O3")
 #set(CMAKE_CXX_FLAGS "-static -g -fno-omit-frame-pointer -O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-static -g -fno-omit-frame-pointer -O0")
-IF(WIN32)
-    set(glad_DIR "C:\\Users\\frama\\.vcpkg-clion\\vcpkg\\packages\\glad_x64-mingw-dynamic\\share\\glad")
-    set(glm_DIR "C:\\Users\\frama\\.vcpkg-clion\\vcpkg\\packages\\glm_x64-mingw-dynamic\\share\\glm")
-ENDIF()
-# Find SDL3 and OpenGL
+
+# Find all the libs
 find_package(OpenGL REQUIRED)
-find_package(glad CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
+find_package(glad CONFIG REQUIRED)
+find_package(nlohmann_json 3.12.0 CONFIG REQUIRED)
 
+# install SDL3
 include(FetchContent)
-
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
-FetchContent_MakeAvailable(json)
-
 FetchContent_Declare(
         SDL3
         GIT_REPOSITORY "https://github.com/libsdl-org/SDL.git"
@@ -66,6 +60,7 @@ add_custom_target(copy-runtime-files ALL
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/shaders ${CMAKE_BINARY_DIR}/shaders
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/assets
         DEPENDS ${MY_TARGET})
+
 
 add_dependencies(IndustrialHard copy-runtime-files)
 

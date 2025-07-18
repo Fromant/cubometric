@@ -1,0 +1,8 @@
+{
+  "dependencies": [
+    "glad",
+    "opengl",
+    "glm",
+    "nlohmann-json"
+  ]
+}
