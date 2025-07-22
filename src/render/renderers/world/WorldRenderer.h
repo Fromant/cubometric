@@ -5,12 +5,12 @@
 #include "SkyRenderer.hpp"
 #include "game/world/EFacing.h"
 #include "game/world/World.h"
+#include "render/Camera.h"
 #include "render/buffers/MappedBufferPool.h"
 #include "render/utils/Shader.h"
-#include "render/Camera.h"
 
 class WorldRenderer {
-    MappedBufferPool bufferPool;
+    GPU::MappedChunkBuffer* bufferPool = nullptr;
 
     Shader* shader = nullptr;
     SkyRenderer skyRenderer;
@@ -29,25 +29,26 @@ class WorldRenderer {
 
     std::vector<DrawArraysIndirectCommand> cmds;
 
-    void renderChunk(const glm::ivec2& coords, size_t y0, size_t y1,
+    void renderChunk(size_t id, const glm::ivec2& coords, size_t y0, size_t y1,
                      const glm::vec3& cameraCoords,
-                     const GPUBuffer* buffer);
-    void renderSubChunk(const glm::ivec3& coords,
-                        const glm::vec3& cameraCoords,
-                        const GPUBuffer* buffer, bool& bufferBind);
-    static void renderSubChunkFacing(const GPUBuffer* buf, int y, Facing f,
-                                     std::vector<DrawArraysIndirectCommand>& cmds);
-    static void renderChunkGrid(const Camera& camera);
+                     const GPU::MappedChunkBuffer::ChunkBufferView& buffer);
+    void renderSubChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords,
+                        size_t offset,
+                        const GPU::MappedChunkBuffer::ChunkBufferView& buffer);
+    static void renderSubChunkFacing(
+        const GPU::MappedChunkBuffer::ChunkBufferView& buf, int y, Facing f,
+        size_t offset, std::vector<DrawArraysIndirectCommand>& cmds);
+    void renderChunkGrid(const Camera& camera);
 
-public:
+   public:
     int render(World& w, const Camera& c);
 
     void init();
 
-    MappedBufferPool& getBufferPool() { return bufferPool; }
+    GPU::MappedChunkBuffer& getBufferPool() { return *bufferPool; }
 
     void switchWireframeRendering() { renderWireframe = !renderWireframe; }
 
     ~WorldRenderer();
-    explicit WorldRenderer(const Camera& camera) : bufferPool(camera.viewDistance * camera.viewDistance * 4) {}
+    explicit WorldRenderer(const Camera& camera) {}
 };

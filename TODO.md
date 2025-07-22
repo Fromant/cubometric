@@ -22,13 +22,15 @@
 - [x] switch texturing to texture arrays instead of textures
 - [x] Add diffuse lightning
 - [X] Greedy mesher
+- [x] Procedural sky
+- [x] Everything to one gpu buffer
+- [ ] make greedChunkFaces just one large vector
+- [ ] draw new textures
 - [ ] LODs
-- [ ] Everything to one gpu buffer
 - [ ] ShadowMap (partial?)
 - [ ] Bloom
 - [ ] Chunk border rendering
 - [ ] Add baked lightning into vertices (for other light sources and ambient occlusion)
-- [ ] Procedural sky
 - [ ] Switch to vulkan????
 - [ ] Rewrite memory allocator to save on buffer switches.
 - [ ] Make a lot debug info nice looking and possible to easy add and delete.
