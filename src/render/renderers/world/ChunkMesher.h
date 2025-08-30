@@ -14,14 +14,15 @@ class ChunkMesher {
     static inline std::vector<bool> processed = std::vector<bool>(Chunk::WIDTH * Chunk::WIDTH, false);
 
     static std::array<bool, 6>
-    checkAdjacentBlocks(World& world, const ChunkData& chunkData, const glm::ivec2& chunkPos,
-                        const glm::ivec3& blockPos);
-    static void generateChunkMeshData(World& world, const glm::ivec2& chunkPos);
-    static void generateChunkMesh(const glm::ivec2& chunkPos, MappedBufferPool& pool);
-    static void greedyMesh();
+    checkAdjacentBlocks(World& world, const ChunkData& chunkData,
+                        const glm::ivec2& chunkPos, const glm::ivec3& blockPos,
+                        int scale);
+    static void generateChunkMeshData(World& world, const glm::ivec2& chunkPos, int scale);
+    static void generateChunkMesh(const glm::ivec2& chunkPos, MappedBufferPool& pool, int scale);
+    static void greedyMesh(int scale);
 
 public:
-    static void update(World& world, const glm::ivec2& chunkPos, MappedBufferPool& pool);
+    static void update(World& world, const glm::ivec2& chunkPos, MappedBufferPool& pool, int scale);
 };
 
 

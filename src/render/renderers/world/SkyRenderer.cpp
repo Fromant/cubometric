@@ -89,7 +89,6 @@ void SkyRenderer::renderSkybox(const glm::mat4& view, const glm::mat4& proj, con
     sunDir = glm::normalize(glm::vec3(sunX, sunY, 0.0f));
 
     glDepthMask(GL_FALSE);
-    glDisable(GL_CULL_FACE);
     skyboxShader->use();
 
     skyboxShader->setFloat("uTime", t);
@@ -104,7 +103,6 @@ void SkyRenderer::renderSkybox(const glm::mat4& view, const glm::mat4& proj, con
     sunRenderer.render(view, proj, camera, angle, 1);
 
     glDepthMask(GL_TRUE);
-    glEnable(GL_CULL_FACE);
 }
 
 SkyRenderer::~SkyRenderer() {

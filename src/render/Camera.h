@@ -50,7 +50,7 @@ private:
     float aspectRatio{};
 
     const float zFar = viewDistance * Chunk::WIDTH * sqrtf(2);
-    const float zNear = 0.1f;
+    const float zNear = 0.3f;
 
     void updateMatrices();
 };

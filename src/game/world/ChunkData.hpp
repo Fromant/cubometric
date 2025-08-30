@@ -22,6 +22,19 @@ public:
 
     ChunkData() : blocks(WIDTH * HEIGHT * DEPTH, BlockType::AIR) {}
 
+    ChunkData(ChunkData& other) = delete;
+
+    ChunkData(ChunkData&& other) noexcept {
+        blocks.swap(other.blocks);
+    }
+
+    ChunkData& operator=(ChunkData& other) = delete;
+
+    ChunkData& operator=(ChunkData&& other) noexcept {
+        blocks.swap(other.blocks);
+        return *this;
+    };
+
     void changeBlock(const glm::ivec3& pos, BlockType data) {
         blocks.at(getIndex(pos)) = data;
         // blocks[getIndex(pos)] = data;

@@ -36,50 +36,50 @@ constexpr glm::vec3 getDirection(Facing f) {
     }
 }
 
-constexpr void advanceInDirection(Facing f, glm::vec3& v) {
+constexpr void advanceInDirection(Facing f, glm::vec3& v, float scale = 1.0f) {
     switch (f) {
         case WEST:
-            v.x -= 1;
+            v.x -= scale;
             break;
         case EAST:
-            v.x += 1;
+            v.x += scale;
             break;
         case SOUTH:
-            v.z -= 1;
+            v.z -= scale;
             break;
         case NORTH:
-            v.z += 1;
+            v.z += scale;
             break;
         case UP:
-            v.y += 1;
+            v.y += scale;
             break;
         case DOWN:
-            v.y -= 1;
+            v.y -= scale;
             break;
         default:
             break;
     }
 }
 
-constexpr void advanceInDirection(Facing f, glm::ivec3& v) {
+constexpr void advanceInDirection(Facing f, glm::ivec3& v, int scale = 1) {
     switch (f) {
         case WEST:
-            v.x -= 1;
+            v.x -= scale;
             break;
         case EAST:
-            v.x += 1;
+            v.x += scale;
             break;
         case SOUTH:
-            v.z -= 1;
+            v.z -= scale;
             break;
         case NORTH:
-            v.z += 1;
+            v.z += scale;
             break;
         case UP:
-            v.y += 1;
+            v.y += scale;
             break;
         case DOWN:
-            v.y -= 1;
+            v.y -= scale;
             break;
         default:
             break;

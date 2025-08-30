@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_set>
 #include <vector>
 
 #include "SkyRenderer.hpp"
@@ -28,13 +29,15 @@ class WorldRenderer {
     } DrawArraysIndirectCommand;
 
     std::vector<DrawArraysIndirectCommand> cmds;
+    void renderChunks(int x, int z, int scale, World& world, std::unordered_set<size_t>& rendered_chunks, int yMin,
+                      int yMax, const Frustum& frustum, const Camera& camera, int& subChunksRendered);
 
     void renderChunk(const glm::ivec2& coords, size_t y0, size_t y1,
                      const glm::vec3& cameraCoords,
-                     const GPUBuffer* buffer);
+                     const GPUBuffer* buffer, int scale);
     void renderSubChunk(const glm::ivec3& coords,
                         const glm::vec3& cameraCoords,
-                        const GPUBuffer* buffer, bool& bufferBind);
+                        const GPUBuffer* buffer, bool& bufferBind, int scale);
     static void renderSubChunkFacing(const GPUBuffer* buf, int y, Facing f,
                                      std::vector<DrawArraysIndirectCommand>& cmds);
     static void renderChunkGrid(const Camera& camera);

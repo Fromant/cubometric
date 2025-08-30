@@ -2,8 +2,8 @@
 #include <glm/vec3.hpp>
 
 struct AABB {
-    glm::vec3 min;
-    glm::vec3 max;
+    glm::ivec3 min;
+    glm::ivec3 max;
 
     bool intersects(const AABB& other) const {
         return (min.x <= other.max.x && max.x >= other.min.x) &&

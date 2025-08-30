@@ -58,9 +58,11 @@ public:
         return Chunk::getId(xCoord, zCoord);
     }
 
-    static size_t getId(unsigned int xCoord, unsigned int zCoord) {
-        constexpr uint64_t OFFSET = 1 << 20; // 2^20 (handles ±1M chunks)
-        return mortonEncode(xCoord + OFFSET, zCoord + OFFSET);
+    static size_t getId(unsigned int xCoord, unsigned int zCoord, int scale = 0) {
+        size_t mask = (1 << 21) - 1;
+        return (xCoord & mask) | ((zCoord & mask) << 21) | ((scale & mask) << 42);
+        // constexpr uint64_t OFFSET = 1 << 20; // 2^20 (handles +-1M chunks)
+        // return mortonEncode(xCoord + OFFSET, zCoord + OFFSET);
     }
 
     const ChunkData& getBlocks() const { return data; }

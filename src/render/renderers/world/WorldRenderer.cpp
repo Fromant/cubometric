@@ -14,10 +14,10 @@
 #include "render/utils.h"
 #include "render/renderers/block/CubeModel.h"
 
-AABB getSubChunkBoundingBox(const glm::vec3& chunkPosition) {
+AABB getSubChunkBoundingBox(const glm::ivec3& chunkPosition, int scale) {
     AABB box{};
     box.min = chunkPosition;
-    box.max = chunkPosition + glm::vec3(Chunk::WIDTH, Chunk::SUB_HEIGHT, Chunk::DEPTH);
+    box.max = box.min + glm::ivec3(Chunk::WIDTH, Chunk::SUB_HEIGHT, Chunk::DEPTH) * scale;
     return box;
 }
 
@@ -48,6 +48,7 @@ void WorldRenderer::renderSubChunkFacing(const GPUBuffer* buf, int y, Facing f,
             auto& lastCMD = cmds.back();
             if (lastCMD.first + lastCMD.count == view.offset * 6) {
                 lastCMD.count += view.size * 6;
+                // return;
             }
         }
         cmds.emplace_back(view.size * 6, 1, view.offset * 6, 0);
@@ -56,22 +57,22 @@ void WorldRenderer::renderSubChunkFacing(const GPUBuffer* buf, int y, Facing f,
 
 void WorldRenderer::renderSubChunk(const glm::ivec3& coords,
                                    const glm::vec3& cameraCoords,
-                                   const GPUBuffer* buffer, bool& bufferBind) {
+                                   const GPUBuffer* buffer, bool& bufferBind, int scale) {
     cmds.clear();
 
-    if (coords.x * Chunk::WIDTH - static_cast<int>(cameraCoords.x) < Chunk::WIDTH)
+    if (coords.x * Chunk::WIDTH - static_cast<int>(cameraCoords.x) < Chunk::WIDTH * scale)
         renderSubChunkFacing(buffer, coords.y, EAST, cmds);
-    if (static_cast<int>(cameraCoords.x) - coords.x * Chunk::WIDTH < Chunk::WIDTH)
+    if (static_cast<int>(cameraCoords.x) - coords.x * Chunk::WIDTH < Chunk::WIDTH * scale)
         renderSubChunkFacing(buffer, coords.y, WEST, cmds);
 
-    if (coords.y * Chunk::SUB_HEIGHT - static_cast<int>(cameraCoords.y) < Chunk::SUB_HEIGHT)
+    if (coords.y * Chunk::SUB_HEIGHT - static_cast<int>(cameraCoords.y) < Chunk::SUB_HEIGHT * scale)
         renderSubChunkFacing(buffer, coords.y, UP, cmds);
-    if (static_cast<int>(cameraCoords.y) - coords.y * Chunk::SUB_HEIGHT < Chunk::SUB_HEIGHT)
+    if (static_cast<int>(cameraCoords.y) - coords.y * Chunk::SUB_HEIGHT < Chunk::SUB_HEIGHT * scale)
         renderSubChunkFacing(buffer, coords.y, DOWN, cmds);
 
-    if (coords.z * Chunk::DEPTH - static_cast<int>(cameraCoords.z) < Chunk::DEPTH)
+    if (coords.z * Chunk::DEPTH - static_cast<int>(cameraCoords.z) < Chunk::DEPTH * scale)
         renderSubChunkFacing(buffer, coords.y, NORTH, cmds);
-    if (static_cast<int>(cameraCoords.z) - coords.z * Chunk::DEPTH < Chunk::DEPTH)
+    if (static_cast<int>(cameraCoords.z) - coords.z * Chunk::DEPTH < Chunk::DEPTH * scale)
         renderSubChunkFacing(buffer, coords.y, SOUTH, cmds);
 
     if (cmds.empty()) return;
@@ -88,7 +89,7 @@ void WorldRenderer::renderSubChunk(const glm::ivec3& coords,
 
 void WorldRenderer::renderChunk(const glm::ivec2& coords, const size_t y0, const size_t y1,
                                 const glm::vec3& cameraCoords,
-                                const GPUBuffer* buffer) {
+                                const GPUBuffer* buffer, int scale) {
     if (!buffer || buffer->size() == 0) return;
 
     if (auto err = glGetError(); err != GL_NO_ERROR)
@@ -98,7 +99,7 @@ void WorldRenderer::renderChunk(const glm::ivec2& coords, const size_t y0, const
     bool bufferBind = false;
     for (int y = y0; y <= y1; y++) {
         // std::cout << "Rendering subchunk " << coords.x << ' ' << y << ' ' << coords.y << std::endl;
-        renderSubChunk({coords.x, y, coords.y}, cameraCoords, buffer, bufferBind);
+        renderSubChunk({coords.x, y, coords.y}, cameraCoords, buffer, bufferBind, scale);
     }
 
     if (auto err = glGetError(); err != GL_NO_ERROR)
@@ -107,8 +108,35 @@ void WorldRenderer::renderChunk(const glm::ivec2& coords, const size_t y0, const
     // buffer->notifySubmitted();
 }
 
-void WorldRenderer::renderChunkGrid(const Camera& camera) {
+void WorldRenderer::renderChunkGrid(const Camera& camera) {}
 
+void WorldRenderer::renderChunks(int x, int z, int scale, World& world, std::unordered_set<size_t>& rendered_chunks,
+                                 int yMin, int yMax, const Frustum& frustum, const Camera& camera,
+                                 int& subChunksRendered) {
+    int y0 = -1;
+    int y1 = -1;
+
+    x *= scale;
+    z *= scale;
+
+    const size_t id = Chunk::getId(x, z, scale);
+    if (!bufferPool.containsBuffer(id)) {
+        ChunkMesher::update(world, {x, z}, bufferPool, scale);
+    }
+
+    rendered_chunks.emplace(id);
+
+    for (int y = yMin; y < yMax; y++) {
+        AABB chunkBox = getSubChunkBoundingBox(
+            glm::vec3(x * Chunk::WIDTH, y * Chunk::SUB_HEIGHT, z * Chunk::DEPTH),
+            scale);
+        if (frustum.isAABBVisible(chunkBox)) {
+            if (y0 == -1) y0 = y;
+            y1 = y;
+            subChunksRendered++;
+        }
+    }
+    renderChunk({x, z}, y0, y1, camera.Position, bufferPool.getBuffer(id), scale);
 }
 
 int WorldRenderer::render(World& world, const Camera& camera) {
@@ -122,6 +150,8 @@ int WorldRenderer::render(World& world, const Camera& camera) {
         glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     else
         glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+
+    int scale = 1;
 
     shader->use();
     shader->setMat4("view", view);
@@ -144,52 +174,54 @@ int WorldRenderer::render(World& world, const Camera& camera) {
 
     int subChunksRendered = 0;
 
-    int xMin = camera.Position.x / Chunk::WIDTH - camera.viewDistance;
-    int xMax = camera.Position.x / Chunk::WIDTH + camera.viewDistance;
-    int zMin = camera.Position.z / Chunk::DEPTH - camera.viewDistance;
-    int zMax = camera.Position.z / Chunk::DEPTH + camera.viewDistance;
+    const int RADIUS = camera.viewDistance * camera.viewDistance / scale; //in chunks
+
+    int x0 = (camera.Position.x + Chunk::WIDTH / 2) / Chunk::WIDTH;
+    int z0 = (camera.Position.z + Chunk::WIDTH / 2) / Chunk::DEPTH;
     int yMin = 0;
-    int yMax = Chunk::HEIGHT / Chunk::WIDTH;
+    int yMax = Chunk::HEIGHT / Chunk::WIDTH / scale;
 
     std::unordered_set<size_t> rendered_chunks{};
 
-    const int RADIUS = camera.viewDistance * camera.viewDistance * Chunk::WIDTH * Chunk::WIDTH;
-
-    for (int x = xMin; x < xMax; x++) {
-        for (int z = zMin; z < zMax; z++) {
-            float chunkCenterX = (x + 0.5f) * Chunk::WIDTH;
-            float chunkCenterZ = (z + 0.5f) * Chunk::DEPTH;
-
-            float dx = chunkCenterX - camera.Position.x;
-            float dz = chunkCenterZ - camera.Position.z;
-            float distanceSquared = dx * dx + dz * dz;
-
-            if (distanceSquared > RADIUS) continue;
-
-            // const int LODLevel = std::min(int(sqrtf(distanceSquared) / Chunk::WIDTH / LOD_DISTANCE), LOD_LEVELS);
-
-            int y0 = -1;
-            int y1 = -1;
-
-            const size_t id = Chunk::getId(x, z);
-            if (!bufferPool.containsBuffer(id)) {
-                // if (LODLevel == 0)
-                ChunkMesher::update(world, {x, z}, bufferPool);
-                // else ChunkMesher::updateLOD(world, {x, z}, bufferPool, LODLevel);
-            }
-
-            rendered_chunks.emplace(Chunk::getId(x, z));
-
-            for (int y = yMin; y < yMax; y++) {
-                AABB chunkBox = getSubChunkBoundingBox(glm::vec3(x * Chunk::WIDTH, y * Chunk::WIDTH, z * Chunk::DEPTH));
-                if (frustum.isAABBVisible(chunkBox)) {
-                    if (y0 == -1) y0 = y;
-                    y1 = y;
-                    subChunksRendered++;
-                }
-            }
-            renderChunk({x, z}, y0, y1, camera.Position, bufferPool.getBuffer(id));
+    shader->setInt32("uScale", scale);
+    //render 4 center chunks
+    for (int x = x0 - 1; x <= x0; x++) {
+        for (int z = z0 - 1; z <= z0; z++) {
+            renderChunks(x, z, scale, world, rendered_chunks, yMin, yMax, frustum, camera, subChunksRendered);
         }
+    }
+
+    //render all other chunks in triangle
+    for (int LOD = 0; LOD < 3; LOD++) {
+        for (int x = -2; x < 2; x++) {
+            int z = -2;
+            renderChunks(x + x0, z + z0, scale, world, rendered_chunks,
+                         yMin, yMax, frustum, camera, subChunksRendered);
+        }
+
+        renderChunks(x0 - 2, z0 - 1, scale, world, rendered_chunks,
+                     yMin, yMax, frustum, camera, subChunksRendered);
+        renderChunks(x0 - 2, z0, scale, world, rendered_chunks,
+                     yMin, yMax, frustum, camera, subChunksRendered);
+        renderChunks(x0 + 1, z0 - 1, scale, world, rendered_chunks,
+                     yMin, yMax, frustum, camera, subChunksRendered);
+        renderChunks(x0 + 1, z0, scale, world, rendered_chunks,
+                     yMin, yMax, frustum, camera, subChunksRendered);
+
+
+        for (int x = -2; x < 2; x++) {
+            int z = 1;
+            renderChunks(x + x0, z + z0, scale, world, rendered_chunks,
+                         yMin, yMax, frustum, camera, subChunksRendered);
+        }
+
+        scale *= 2;
+        yMax /= 2;
+
+        x0 = (camera.Position.x + Chunk::WIDTH * scale / 2) / Chunk::WIDTH / scale;
+        z0 = (camera.Position.z + Chunk::WIDTH * scale / 2) / Chunk::DEPTH / scale;
+
+        shader->setInt32("uScale", scale);
     }
 
     for (const auto& chunk : world.chunks) {
@@ -198,11 +230,10 @@ int WorldRenderer::render(World& world, const Camera& camera) {
         }
     }
 
-    std::erase_if(world.chunks, [xMin, xMax, zMin, zMax](const auto& iter) {
-        bool erase = iter.second.xCoord < xMin - 1 || iter.second.xCoord > xMax + 1 ||
-            iter.second.zCoord < zMin - 1 || iter.second.zCoord > zMax + 1;
-        return erase;
-    });
+    // std::erase_if(world.chunks, [rendered_chunks](const auto& iter) {
+                      // return !rendered_chunks.contains(iter.second.getId());
+                  // }
+    // );
 
     // glFlush();
 

@@ -1,66 +1,7 @@
 #include "ChunkMesher.h"
 
+#include <map>
 #include <glm/vec2.hpp>
-
-std::array<bool, 6> ChunkMesher::checkAdjacentBlocks(World& world, const ChunkData& chunkData,
-                                                     const glm::ivec2& chunkPos,
-                                                     const glm::ivec3& blockPos) {
-    std::array<bool, 6> res{};
-
-    constexpr int extremePoses[6] = {0, Chunk::WIDTH - 1, 0, Chunk::DEPTH - 1, Chunk::HEIGHT - 1, 0};
-    constexpr int affectedCoords[6] = {0, 0, 2, 2, 1, 1};
-    constexpr glm::ivec3 minBlockPoses[6] = {
-            glm::ivec3{Chunk::WIDTH - 1, 0, 0},
-            glm::ivec3{-Chunk::WIDTH + 1, 0, 0},
-            glm::ivec3{0, 0, Chunk::DEPTH - 1},
-            glm::ivec3{0, 0, -Chunk::DEPTH + 1},
-            glm::ivec3{0, -Chunk::HEIGHT + 1, 0},
-            glm::ivec3{0, Chunk::HEIGHT - 1, 0}
-        };
-    constexpr glm::ivec2 chunkChanges[6] = {
-            glm::ivec2{-1, 0},
-            glm::ivec2{1, 0},
-            glm::ivec2{0, -1},
-            glm::ivec2{0, 1},
-            glm::ivec2{0, 0},
-            glm::ivec2{0, 0}
-        };
-
-    //check x+ x- z+ z-
-    for (int f = 0; f < 4; f++) {
-        auto adjacentPos = blockPos;
-        bool chunkChanged = false;
-        if (adjacentPos[affectedCoords[f]] == extremePoses[f]) {
-            adjacentPos += minBlockPoses[f];
-            chunkChanged = true;
-        }
-        if (chunkChanged) {
-            glm::ivec2 newChunkCoords = chunkPos + chunkChanges[f];
-            Chunk* nextChunk = world.getChunk(newChunkCoords.x, newChunkCoords.y);
-            if (!nextChunk ||
-                !nextChunk->getBlocks().containsBlock(adjacentPos)) {
-                res[f] = true;
-            }
-        }
-        else {
-            advanceInDirection(static_cast<Facing>(f), adjacentPos);
-            if (!chunkData.containsBlock(adjacentPos)) res[f] = true;
-        }
-    }
-
-    //check y+ and y-
-    for (int f = 4; f < 6; f++) {
-        auto adjacentPos = blockPos;
-        if (adjacentPos[affectedCoords[f]] == extremePoses[f]) {
-            res[f] = true;
-            continue;
-        }
-        advanceInDirection(static_cast<Facing>(f), adjacentPos);
-        if (!chunkData.containsBlock(adjacentPos)) res[f] = true;
-    }
-
-    return res;
-}
 
 glm::ivec3 posFromHash32(short hash) {
     int x = hash & 0x1F;
@@ -73,7 +14,7 @@ short hashFromPos(const glm::ivec3& pos) {
     return ChunkData::getIndex(pos);
 }
 
-void ChunkMesher::greedyMesh() {
+void ChunkMesher::greedyMesh(int scale) {
     // Clear previous data
     for (auto& faces : greedChunkFaces)
         for (auto& dir : faces) dir.clear();
@@ -191,7 +132,7 @@ void ChunkMesher::greedyMesh() {
     }
 }
 
-void ChunkMesher::generateChunkMesh(const glm::ivec2& chunkPos, MappedBufferPool& pool) {
+void ChunkMesher::generateChunkMesh(const glm::ivec2& chunkPos, MappedBufferPool& pool, int scale) {
     size_t total_size = 0;
 
     std::array<std::array<GPUBuffer::GPUBufferView, 6>, Chunk::SUB_COUNT> subChunks{};
@@ -204,7 +145,7 @@ void ChunkMesher::generateChunkMesh(const glm::ivec2& chunkPos, MappedBufferPool
         }
     }
 
-    const size_t chunkID = Chunk::getId(chunkPos.x, chunkPos.y);
+    const size_t chunkID = Chunk::getId(chunkPos.x, chunkPos.y, scale);
 
     auto* gpuBuffer = pool.getBuffer(chunkID);
     if (!gpuBuffer)
@@ -214,37 +155,111 @@ void ChunkMesher::generateChunkMesh(const glm::ivec2& chunkPos, MappedBufferPool
     for (int subChunk = 0; subChunk < Chunk::SUB_COUNT; subChunk++) {
         for (int facing = 0; facing < 6; facing++) {
             gpuBuffer->writeUnsynced(greedChunkFaces[subChunk][facing].data(),
-                                     subChunks[subChunk][facing].size * sizeof(FaceMesh), subChunks[subChunk][facing].offset* sizeof(FaceMesh), subChunks);
+                                     subChunks[subChunk][facing].size * sizeof(FaceMesh),
+                                     subChunks[subChunk][facing].offset * sizeof(FaceMesh), subChunks);
         }
     }
     gpuBuffer->sync();
 }
 
-void ChunkMesher::generateChunkMeshData(World& world, const glm::ivec2& chunkPos) {
+int hashFromPos(int x, int z) {
+    return (x & 0xFFFF) | (z << 16);
+}
+
+int hashFromPos(const glm::ivec2& pos) {
+    return (pos.x & 0xFFFF) | (pos.y << 16);
+}
+
+int mod(int a, int b) {
+    int r = a % b;
+    return r < 0 ? r + b : r;
+}
+
+glm::ivec2 getChunkCoords(const glm::ivec3& blockPos) {
+    return {std::floor((float)blockPos.x / Chunk::WIDTH), std::floor((float)blockPos.z / Chunk::DEPTH)};
+}
+
+std::array<bool, 6> ChunkMesher::checkAdjacentBlocks(World& world, const ChunkData& chunkData,
+                                                     const glm::ivec2& chunkPos, const glm::ivec3& blockPos,
+                                                     int scale) {
+    std::array<bool, 6> res{};
+
+    //check x+ x- z+ z-
+    for (int f = 0; f < 4; f++) {
+        //world pos
+        auto adjacentPos = blockPos;
+        advanceInDirection(static_cast<Facing>(f), adjacentPos, scale);
+
+        glm::ivec3 adjacentPosChunk = {
+                mod(adjacentPos.x, Chunk::WIDTH), adjacentPos.y, mod(adjacentPos.z, Chunk::DEPTH)
+            };
+
+        glm::ivec2 newChunkCoords = getChunkCoords(adjacentPos);
+
+        const ChunkData& chunkData1 = world.getChunk(newChunkCoords.x, newChunkCoords.y)->getBlocks();
+        if (!chunkData1.containsBlock(adjacentPosChunk)) res[f] = true;
+    }
+
+    //check y+ and y-
+    for (int f = 4; f < 6; f++) {
+        auto adjacentPos = blockPos;
+        advanceInDirection(static_cast<Facing>(f), adjacentPos, scale);
+        if (adjacentPos.y < 0) {
+            res[f] = true;
+            continue;
+        }
+        if (adjacentPos.y > Chunk::HEIGHT) {
+            res[f] = true;
+            continue;
+        }
+        glm::ivec3 adjacentPosChunk = {
+                mod(adjacentPos.x, Chunk::WIDTH), adjacentPos.y, mod(adjacentPos.z, Chunk::DEPTH)
+            };
+        if (!chunkData.containsBlock(adjacentPosChunk)) res[f] = true;
+    }
+
+    return res;
+}
+
+void ChunkMesher::generateChunkMeshData(World& world, const glm::ivec2& chunkPos, int scale) {
     // clear all previous data
     for (auto& subChunk : chunkFaces)
         for (auto& dir : subChunk) dir.clear();
 
-    Chunk* chunk = world.getChunk(chunkPos.x, chunkPos.y);
-    if (!chunk) return;
-    const ChunkData& chunkData = chunk->getBlocks();
+    for (int y = 0; y < Chunk::HEIGHT; y += scale) {
+        int subChunkY = y / Chunk::SUB_HEIGHT / scale; //scaled
+        for (int z = chunkPos.y * Chunk::DEPTH;
+             z < Chunk::DEPTH * scale + chunkPos.y * Chunk::DEPTH; z += scale) {
+            for (int x = chunkPos.x * Chunk::WIDTH;
+                 x < Chunk::WIDTH * scale + chunkPos.x * Chunk::WIDTH; x += scale) {
+                //world pos
+                glm::ivec3 blockPos = glm::ivec3{x, y, z};
+                glm::ivec3 blockPosChunk = glm::ivec3{mod(x, Chunk::WIDTH), y, mod(z, Chunk::DEPTH)};
 
-    for (int y = 0; y < Chunk::HEIGHT; y++) {
-        int subChunkY = y / Chunk::SUB_HEIGHT;
-        for (int z = 0; z < Chunk::DEPTH; z++) {
-            for (int x = 0; x < Chunk::WIDTH; x++) {
-                if (!chunkData.containsBlock({x, y, z})) continue;
+                //super sub chunk scaled pos
+                glm::ivec2 blockSuperSubChunk = {x / scale / Chunk::WIDTH, z / scale / Chunk::DEPTH};
+
+                //sub chunk pos
+                glm::ivec2 subChunkPos = getChunkCoords(blockPos);
+
+                const ChunkData& chunkData = world.getChunk(subChunkPos.x, subChunkPos.y)->getBlocks();
+                if (!chunkData.containsBlock(blockPosChunk)) continue;
+
                 const int layer = 0;
-                glm::ivec3 blockPos{x, y, z};
 
-                std::array<bool, 6> res = checkAdjacentBlocks(world, chunkData, chunkPos, blockPos);
+                std::array<bool, 6> res = checkAdjacentBlocks(world, chunkData, subChunkPos, blockPos, scale);
 
-                //block pos in subchunk for correct mesh generation
-                blockPos.y %= Chunk::SUB_HEIGHT;
+                //block pos in super subchunk mesh (32x32x32)
+                blockPos /= scale;
+                blockPos = {
+                        mod(blockPos.x, Chunk::WIDTH),
+                        mod(blockPos.y, Chunk::SUB_HEIGHT),
+                        mod(blockPos.z, Chunk::DEPTH)
+                    };
 
                 for (int f = 0; f < 6; f++) {
                     if (res[f])
-                        chunkFaces[subChunkY][f][chunkData.getIndex(blockPos)] = layer;
+                        chunkFaces[subChunkY][f][ChunkData::getIndex(blockPos)] = layer;
                 }
             }
         }
@@ -299,8 +314,8 @@ void greedyMeshPlane(const std::function<BlockType(int, int)>& sample,
     }
 }
 
-void ChunkMesher::update(World& world, const glm::ivec2& chunkPos, MappedBufferPool& pool) {
-    generateChunkMeshData(world, chunkPos);
-    greedyMesh();
-    generateChunkMesh(chunkPos, pool);
+void ChunkMesher::update(World& world, const glm::ivec2& chunkPos, MappedBufferPool& pool, int scale) {
+    generateChunkMeshData(world, chunkPos, scale);
+    greedyMesh(scale);
+    generateChunkMesh(chunkPos, pool, scale);
 }
