@@ -6,7 +6,7 @@
 #include "game/world/Chunk.h"
 #include "game/world/World.h"
 #include "render/buffers/MappedBufferPool.h"
-#include "render/renderers/block/CubeModel.h"
+#include "render/models/CubeModel.h"
 
 class ChunkMesher {
     static inline std::array<

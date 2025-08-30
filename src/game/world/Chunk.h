@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ChunkData.hpp"
-#include "render/Frustum.h"
+#include "../../render/utils/Frustum.h"
 
 class Chunk {
 public:

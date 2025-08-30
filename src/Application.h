@@ -21,7 +21,7 @@ private:
     SDL_GLContext GLContext{};
     debug::DebugRenderer* debugRenderer{};
     Camera camera;
-    WorldRenderer worldRenderer{camera};
+    WorldRenderer worldRenderer;
     World world;
     bool captureMouse = false;
     void Init();

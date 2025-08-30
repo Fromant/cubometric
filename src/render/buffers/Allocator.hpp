@@ -1,3 +1,4 @@
+#pragma once
 #include <glad/glad.h>
 
 #include <algorithm>
@@ -5,7 +6,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "render/renderers/block/Vertex.h"
+#include "render/models/Vertex.h"
 
 typedef unsigned long long u64;
 

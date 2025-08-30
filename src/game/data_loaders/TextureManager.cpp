@@ -6,7 +6,7 @@
 
 #include "../../../3rdparty/stb_image.h"
 #include "../../Application.h"
-#include "render/utils.h"
+#include "../../render/utils/utils.h"
 
 constexpr int LAYER_COUNT =
     2048;  // Opengl 4.5 provides at least that number of layers

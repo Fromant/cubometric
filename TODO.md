@@ -24,6 +24,7 @@
 - [X] Greedy mesher
 - [x] Procedural sky
 - [x] Everything to one gpu buffer
+- [ ] Sync sun and ground sun
 - [ ] make greedChunkFaces just one large vector
 - [ ] draw new textures
 - [ ] LODs

@@ -11,8 +11,8 @@
 
 #include "ChunkMesher.h"
 #include "game/data_loaders/globals.h"
-#include "render/renderers/block/CubeModel.h"
-#include "render/utils.h"
+#include "render/models/CubeModel.h"
+#include "../../utils/utils.h"
 
 AABB getSubChunkBoundingBox(const glm::vec3& chunkPosition) {
     AABB box{};
@@ -36,7 +36,7 @@ void WorldRenderer::init() {
 
     glBindVertexArray(VAO);
 
-    glGenBuffers(1, &indirectBuffer);
+    glGenBuffers(1, &cmdBuffer);
 
     skyRenderer.init();
 
@@ -151,7 +151,7 @@ int WorldRenderer::render(World& world, const Camera& camera) {
                     glm::normalize(glm::vec3(lightX, lightY, lightZ)));
 
     glBindVertexArray(VAO);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectBuffer);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, cmdBuffer);
 
     auto frustum = camera.getFrustum();
 
@@ -234,5 +234,5 @@ int WorldRenderer::render(World& world, const Camera& camera) {
 WorldRenderer::~WorldRenderer() {
     delete shader;
     glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &indirectBuffer);
+    glDeleteBuffers(1, &cmdBuffer);
 }

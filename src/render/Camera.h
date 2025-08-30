@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <SDL3/SDL_events.h>
 
-#include "Frustum.h"
+#include "utils/Frustum.h"
 #include "game/world/Chunk.h"
 
 class Camera {

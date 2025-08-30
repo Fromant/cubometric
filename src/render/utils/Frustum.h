@@ -5,7 +5,7 @@
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp>
 
-#include "utils/AABB.hpp"
+#include "AABB.hpp"
 #include "Plane.h"
 
 

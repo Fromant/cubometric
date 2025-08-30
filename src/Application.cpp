@@ -5,7 +5,7 @@
 
 #include "game/data_loaders/globals.h"
 
-#include "render/globals.h"
+#include "render/utils/globals.h"
 
 Application::Application(): camera(float(render::screenWidth) / float(render::screenHeight)) {
     Init();

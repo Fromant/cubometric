@@ -8,8 +8,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "-static -g -fno-omit-frame-pointer -O0")
 # Find all the libs
 find_package(OpenGL REQUIRED)
 find_package(glm CONFIG REQUIRED)
-find_package(glad CONFIG REQUIRED)
 find_package(nlohmann_json 3.12.0 CONFIG REQUIRED)
+find_package(glad CONFIG REQUIRED)
 
 # install SDL3
 include(FetchContent)
@@ -45,7 +45,7 @@ add_executable(${PROJECT_NAME} src/main.cpp
 
         src/game/world/ChunkData.cpp
         src/game/world/ChunkData.hpp
-        src/utils/AABB.hpp
+        src/render/utils/AABB.hpp
 
         src/game/world/worldgen/WorldGenerator.cpp
         src/game/world/worldgen/WorldGenerator.hpp

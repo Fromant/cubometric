@@ -16,7 +16,7 @@ class WorldRenderer {
     SkyRenderer skyRenderer;
 
     GLuint VAO = 0;
-    GLuint indirectBuffer = 0;
+    GLuint cmdBuffer = 0;
 
     bool renderWireframe = false;
 
@@ -40,15 +40,12 @@ class WorldRenderer {
         size_t offset, std::vector<DrawArraysIndirectCommand>& cmds);
     void renderChunkGrid(const Camera& camera);
 
-   public:
+public:
     int render(World& w, const Camera& c);
 
     void init();
 
-    GPU::MappedChunkBuffer& getBufferPool() { return *bufferPool; }
-
     void switchWireframeRendering() { renderWireframe = !renderWireframe; }
 
     ~WorldRenderer();
-    explicit WorldRenderer(const Camera& camera) {}
 };
