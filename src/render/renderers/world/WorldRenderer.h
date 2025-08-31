@@ -6,6 +6,7 @@
 #include "game/world/EFacing.h"
 #include "game/world/World.h"
 #include "render/Camera.h"
+#include "render/buffers/ChunkMeshQueue.hpp"
 #include "render/buffers/MappedBufferPool.h"
 #include "render/utils/Shader.h"
 
@@ -18,6 +19,9 @@ class WorldRenderer {
     GLuint VAO = 0;
     GLuint cmdBuffer = 0;
 
+    World& world;
+    const Camera& camera;
+
     bool renderWireframe = false;
 
     typedef struct {
@@ -29,19 +33,25 @@ class WorldRenderer {
 
     std::vector<DrawArraysIndirectCommand> cmds;
 
+    ChunkMeshQueue chunkMeshQueue_;
+
     void renderChunk(size_t id, const glm::ivec2& coords, size_t y0, size_t y1,
-                     const glm::vec3& cameraCoords,
                      const GPU::MappedChunkBuffer::ChunkBufferView& buffer);
-    void renderSubChunk(const glm::ivec3& coords, const glm::vec3& cameraCoords,
+    void renderSubChunk(const glm::ivec3& coords,
                         size_t offset,
                         const GPU::MappedChunkBuffer::ChunkBufferView& buffer);
     static void renderSubChunkFacing(
         const GPU::MappedChunkBuffer::ChunkBufferView& buf, int y, Facing f,
         size_t offset, std::vector<DrawArraysIndirectCommand>& cmds);
-    void renderChunkGrid(const Camera& camera);
+    void renderChunkGrid();
+
+    std::atomic_bool do_mesh = false;
+    void meshLoop();
 
 public:
-    int render(World& w, const Camera& c);
+    WorldRenderer(World& w, Camera& c) : world(w), camera(c) {}
+
+    int render();
 
     void init();
 

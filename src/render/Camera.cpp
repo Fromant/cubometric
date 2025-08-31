@@ -6,9 +6,10 @@
 
 constexpr glm::vec3 WorldUp{0, 1, 0};
 
-Camera::Camera(float aspectRatio, glm::vec3 position) : Position(position), Velocity(0.0f, 0.0f, 0.0f) {
-    updateMatrices();
-    changeAspectRatio(aspectRatio);
+Camera::Camera(int w, int h, glm::vec3 position) : Position(position), Velocity(0.0f, 0.0f, 0.0f) {
+    updateView();
+    resize(w, h);
+    changeFOV(FOV);
 }
 
 void Camera::Update(float deltaTime) {
@@ -21,10 +22,10 @@ void Camera::Update(float deltaTime) {
     if (keys[SDL_SCANCODE_D]) Position += Right * velocity;
     if (keys[SDL_SCANCODE_SPACE]) Position.y += velocity;
     if (keys[SDL_SCANCODE_LSHIFT]) Position.y -= velocity;
-    if (keys[SDL_SCANCODE_C]) changeAspectRatio(aspectRatio, FOV / 4);
-    else changeAspectRatio(aspectRatio);
+    // if (keys[SDL_SCANCODE_C]) changeFOV(FOV / 4);
+    // else changeFOV(FOV);
 
-    updateMatrices();
+    updateView();
 }
 
 void Camera::HandleEvent(SDL_Event& event, bool lockMouse) {
@@ -32,7 +33,7 @@ void Camera::HandleEvent(SDL_Event& event, bool lockMouse) {
         Yaw += event.motion.xrel * Sensitivity;
         Pitch -= event.motion.yrel * Sensitivity;
         Pitch = glm::clamp(Pitch, -89.0f, 89.0f);
-        updateMatrices();
+        updateView();
     }
     else if (event.type == SDL_EVENT_KEY_DOWN) {
         if (event.key.key == SDLK_EQUALS) viewDistance++;
@@ -48,14 +49,21 @@ const glm::mat4& Camera::getProjectionMatrix() const {
     return projection;
 }
 
-void Camera::changeAspectRatio(float aspectRatio, float fov) {
-    this->aspectRatio = aspectRatio;
-    if (fov < 0) fov = FOV;
+void Camera::resize(int w, int h) {
+    this->w = w;
+    this->h = h;
+    aspectRatio = static_cast<float>(w) / h;
+    projection = glm::perspective(glm::radians(FOV), aspectRatio, zNear, zFar);
+}
+
+
+void Camera::changeFOV(float fov) {
+    this->FOV = fov;
     projection = glm::perspective(glm::radians(fov), aspectRatio, zNear, zFar);
 }
 
 
-void Camera::updateMatrices() {
+void Camera::updateView() {
     glm::vec3 front;
     front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
     front.y = sin(glm::radians(Pitch));

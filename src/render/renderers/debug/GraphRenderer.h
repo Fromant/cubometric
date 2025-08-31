@@ -14,7 +14,7 @@ namespace debug {
 
         void UpdateData(const std::vector<float> &data);
 
-        void Render() const;
+        void Render(int windowWidth, int windowHeight) const;
 
     private:
         const Shader &shader;

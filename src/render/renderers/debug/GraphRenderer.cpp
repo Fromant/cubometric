@@ -5,8 +5,6 @@
 #include <vector>
 #include <glm/ext/matrix_clip_space.hpp>
 
-#include "../../utils/globals.h"
-
 namespace debug {
     GraphRenderer::GraphRenderer(const Shader &shader, float x, float y, float width, float height)
         : shader(shader), xPos(x), yPos(y), width(width), height(height) {
@@ -57,7 +55,7 @@ namespace debug {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    void GraphRenderer::Render() const {
+    void GraphRenderer::Render(int windowWidth, int windowHeight) const {
         const glm::mat4 projection = glm::ortho(-1.f, 1.f, -1.f, 1.f);
         shader.use();
 
@@ -70,7 +68,7 @@ namespace debug {
         glBindVertexArray(VAO);
 
         // Draw all lines at once:
-        glLineWidth(render::screenWidth * (vertices[2].x - vertices[0].x) / 2);
+        glLineWidth(windowWidth * (vertices[2].x - vertices[0].x) / 2);
         glDrawArrays(GL_LINES, 0, vertices.size());
 
         glBindVertexArray(0);

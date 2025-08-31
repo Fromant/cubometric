@@ -25,7 +25,7 @@ namespace debug {
                 frametimes.push_back(frametime);
 
                 graphRenderer.UpdateData(frametimes);
-                graphRenderer.Render();
+                graphRenderer.Render(windowWidth, windowHeight);
             }
         }
     };

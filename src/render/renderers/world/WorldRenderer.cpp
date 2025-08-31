@@ -18,7 +18,7 @@ AABB getSubChunkBoundingBox(const glm::vec3& chunkPosition) {
     AABB box{};
     box.min = chunkPosition;
     box.max = chunkPosition +
-              glm::vec3(Chunk::WIDTH, Chunk::SUB_HEIGHT, Chunk::DEPTH);
+        glm::vec3(Chunk::WIDTH, Chunk::SUB_HEIGHT, Chunk::DEPTH);
     return box;
 }
 
@@ -41,6 +41,16 @@ void WorldRenderer::init() {
     skyRenderer.init();
 
     cmds.reserve(4 * Chunk::SUB_COUNT);
+
+    do_mesh = true;
+
+    static constexpr int MESH_WORKERS_COUNT = 1;
+
+    //create mesh loop thread
+    for (int i = 0; i < MESH_WORKERS_COUNT; i++) {
+        std::thread meshWorker(meshLoop, this);
+        meshWorker.detach();
+    }
 }
 
 void WorldRenderer::renderSubChunkFacing(
@@ -62,8 +72,10 @@ void WorldRenderer::renderSubChunkFacing(
 }
 
 void WorldRenderer::renderSubChunk(
-    const glm::ivec3& coords, const glm::vec3& cameraCoords, size_t offset,
+    const glm::ivec3& coords, size_t offset,
     const GPU::MappedChunkBuffer::ChunkBufferView& buffer) {
+    const auto& cameraCoords = camera.getPosition();
+
     cmds.clear();
 
     if (coords.x * Chunk::WIDTH - static_cast<int>(cameraCoords.x) <
@@ -99,7 +111,6 @@ void WorldRenderer::renderSubChunk(
 
 void WorldRenderer::renderChunk(
     const size_t id, const glm::ivec2& coords, const size_t y0, const size_t y1,
-    const glm::vec3& cameraCoords,
     const GPU::MappedChunkBuffer::ChunkBufferView& buffer) {
     if (buffer.back().back().offset - buffer.front().front().offset == 0)
         return;
@@ -111,7 +122,7 @@ void WorldRenderer::renderChunk(
     for (int y = y0; y <= y1; y++) {
         // std::cout << "Rendering subchunk " << coords.x << ' ' << y << ' ' <<
         // coords.y << std::endl;
-        renderSubChunk({coords.x, y, coords.y}, cameraCoords,
+        renderSubChunk({coords.x, y, coords.y},
                        bufferPool->getAllocation(id).offset / sizeof(Vertex),
                        buffer);
     }
@@ -122,9 +133,26 @@ void WorldRenderer::renderChunk(
     // buffer->notifySubmitted();
 }
 
-void WorldRenderer::renderChunkGrid(const Camera& camera) {}
+void WorldRenderer::meshLoop() {
+    ChunkMesher m;
 
-int WorldRenderer::render(World& world, const Camera& camera) {
+    // glm::ivec2 coords;
+
+    std::vector<glm::ivec2> coords{5};
+
+    while (do_mesh) {
+        while (chunkMeshQueue_.pop_bulk(coords)) {
+            for (const auto& coord : coords) {
+                m.update(world, coord, *bufferPool);
+                chunkMeshQueue_.clear_flag(coord);
+            }
+        }
+        bufferPool->flush();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+int WorldRenderer::render() {
     const auto& view = camera.getViewMatrix();
     const auto& proj = camera.getProjectionMatrix();
 
@@ -140,13 +168,13 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     shader->setMat4("projection", proj);
 
     auto time = SDL_GetTicks();
-    float radius = 50.0f;   // distance from center
-    float height = 100.0f;  // height above ground
-    float angle = time / 1000.0f / World::DAY_DURATION_SEC;  // same as before
+    float radius = 50.0f; // distance from center
+    float height = 100.0f; // height above ground
+    float angle = time / 1000.0f / World::DAY_DURATION_SEC; // same as before
 
     float lightX = cosf(angle) * radius;
     float lightZ = sinf(angle) * radius;
-    float lightY = height;  // fixed height
+    float lightY = height; // fixed height
     shader->setVec3("lightDir",
                     glm::normalize(glm::vec3(lightX, lightY, lightZ)));
 
@@ -191,9 +219,14 @@ int WorldRenderer::render(World& world, const Camera& camera) {
             const size_t id = Chunk::getId(x, z);
             if (!bufferPool->containsAllocation(id)) {
                 // if (LODLevel == 0)
-                ChunkMesher::update(world, {x, z}, *bufferPool);
+                //TODO holes appear due to inside hashing
+                chunkMeshQueue_.mark_for_meshing({x, z});
+
+                // queuedChunks.enqueue(producer_token, {x, z});
+                // ChunkMesher::update(world, {x, z}, *bufferPool);
                 // else ChunkMesher::updateLOD(world, {x, z}, bufferPool,
                 // LODLevel);
+                continue;
             }
 
             rendered_chunks.emplace(id);
@@ -207,12 +240,11 @@ int WorldRenderer::render(World& world, const Camera& camera) {
                     subChunksRendered++;
                 }
             }
-            // TODO allocation is wrong...
-            renderChunk(id, {x, z}, y0, y1, camera.Position,
-                        bufferPool->chunkViewData[id]);
+            renderChunk(id, {x, z}, y0, y1, bufferPool->getChunkViewData(id));
         }
     }
 
+    std::unique_lock guard(world.chunks_mutex);
     for (const auto& chunk : world.chunks) {
         if (!rendered_chunks.contains(chunk.first)) {
             bufferPool->deallocate(chunk.first);
@@ -231,7 +263,10 @@ int WorldRenderer::render(World& world, const Camera& camera) {
     return subChunksRendered;
 }
 
+void WorldRenderer::renderChunkGrid() {}
+
 WorldRenderer::~WorldRenderer() {
+    do_mesh = false;
     delete shader;
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &cmdBuffer);

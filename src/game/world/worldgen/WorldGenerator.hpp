@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+
 #include "game/world/Chunk.h"
 #include "noise/PerlinNoise.hpp"
 
@@ -6,7 +8,7 @@ class WorldGenerator {
 public:
     explicit WorldGenerator(unsigned seed = 0) : terrainNoise(seed) {}
 
-    Chunk& generateChunk(int x, int z, std::unordered_map<size_t, Chunk>& chunks) const {
+    Chunk& generateChunk(int x, int z, std::map<size_t, Chunk>& chunks) const {
         size_t id = Chunk::getId(x, z);
 
         Chunk& generated = chunks.emplace(id, glm::ivec2{x, z}).first->second;

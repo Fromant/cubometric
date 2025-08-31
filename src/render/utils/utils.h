@@ -1,5 +1,4 @@
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #include <cstdio>
 #include <cstdlib>
@@ -13,5 +12,3 @@ CheckOpenGLError(#stmt, __FILE__, __LINE__); \
 #else
 #define GL_CHECK(stmt) stmt
 #endif
-
-#endif //UTILS_H

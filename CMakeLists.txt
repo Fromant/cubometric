@@ -3,7 +3,7 @@ project(IndustrialHard)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-static -O3")
 #set(CMAKE_CXX_FLAGS "-static -g -fno-omit-frame-pointer -O3")
-set(CMAKE_CXX_FLAGS_DEBUG "-static -g -fno-omit-frame-pointer -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "-static -g -fno-omit-frame-pointer -O0 -DDEBUG")
 
 # Find all the libs
 find_package(OpenGL REQUIRED)
@@ -54,6 +54,10 @@ add_executable(${PROJECT_NAME} src/main.cpp
         src/game/world/worldgen/noise/Interpolator.hpp
         src/render/renderers/world/QuadRenderer.cpp
         src/render/renderers/world/QuadRenderer.hpp
+        src/render/renderers/RenderThread.cpp
+        src/render/renderers/RenderThread.hpp
+        src/render/buffers/ThreadSafeMappedBufferPool.hpp
+        src/render/buffers/ChunkMeshQueue.hpp
 )
 
 add_custom_target(copy-runtime-files ALL

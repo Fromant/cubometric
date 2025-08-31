@@ -63,6 +63,11 @@ public:
         return mortonEncode(xCoord + OFFSET, zCoord + OFFSET);
     }
 
+    static size_t getId(const glm::ivec2& coords) {
+        constexpr uint64_t OFFSET = 1 << 20; // 2^20 (handles ±1M chunks)
+        return mortonEncode(coords.x + OFFSET, coords.y + OFFSET);
+    }
+
     const ChunkData& getBlocks() const { return data; }
     ChunkData& getBlocks() { return data; }
 

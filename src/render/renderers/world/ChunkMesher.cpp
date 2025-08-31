@@ -216,9 +216,9 @@ void ChunkMesher::generateChunkMesh(const glm::ivec2& chunkPos,
         }
     }
 
-    pool.chunkViewData[chunkID] = subChunks;
+    pool.getChunkViewData(chunkID) = subChunks;
 
-    pool.sync();
+    pool.flush();
 }
 
 void ChunkMesher::generateChunkMeshData(World& world,

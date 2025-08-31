@@ -13,7 +13,7 @@ public:
 
     int viewDistance = 16;
 
-    explicit Camera(float aspectRatio, glm::vec3 position = glm::vec3(0.0f));
+    explicit Camera(int w, int h, glm::vec3 position = glm::vec3(0.0f));
 
     void Update(float deltaTime);
 
@@ -26,9 +26,16 @@ public:
     Frustum getFrustum() const;
 
     const glm::vec3& getDirection() const { return Front; }
-    const glm::vec3& getPosition() const {return Position; }
+    const glm::vec3& getPosition() const { return Position; }
 
-    void changeAspectRatio(float aspectRatio, float fov = -1);
+
+    void changeFOV(float fov);
+
+    void resize(int w, int h);
+
+    int getWidth() const { return w; }
+    int getHeight() const { return h; }
+    float getFOV() const { return FOV; }
 
     const glm::vec3& getRight() const { return Right; }
     const glm::vec3& getFront() const { return Front; }
@@ -49,8 +56,10 @@ private:
     float FOV = 90.0f;
     float aspectRatio{};
 
+    int w, h;
+
     const float zFar = viewDistance * Chunk::WIDTH * sqrtf(2);
     const float zNear = 0.1f;
 
-    void updateMatrices();
+    void updateView();
 };

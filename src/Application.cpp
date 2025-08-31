@@ -5,9 +5,7 @@
 
 #include "game/data_loaders/globals.h"
 
-#include "render/utils/globals.h"
-
-Application::Application(): camera(float(render::screenWidth) / float(render::screenHeight)) {
+Application::Application(): camera(w, h) {
     Init();
 }
 
@@ -51,7 +49,7 @@ void Application::Run() {
 
         GLuint64 elapsedTime = 0;
         glGetQueryObjectui64v(queryID, GL_QUERY_RESULT, &elapsedTime);
-        debugRenderer->Render(elapsedTime / 1000000.0f, render::screenWidth, render::screenHeight);
+        debugRenderer->Render(elapsedTime / 1000000.0f, camera.getWidth(), camera.getHeight());
 
         SDL_GL_SwapWindow(Window);
         frametimes.emplace_back(deltaTime);
@@ -85,12 +83,13 @@ void Application::Init() {
     }
 
     // OpenGL Context Settings
+    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     // Create Window
-    Window = SDL_CreateWindow("Voxel Game", render::screenWidth, render::screenHeight, SDL_WINDOW_OPENGL);
+    Window = SDL_CreateWindow("Voxel Game", camera.getWidth(), camera.getHeight(), SDL_WINDOW_OPENGL);
     if (!Window) {
         std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
         exit(EXIT_FAILURE);
@@ -144,8 +143,6 @@ void Application::Init() {
     std::cout << "Context Profile: "
         << (profile == SDL_GL_CONTEXT_PROFILE_CORE ? "Core" : "Compatibility")
         << "Max 2d texture array layers: " << max_layers << std::endl;
-
-    camera.changeAspectRatio(float(render::screenWidth) / render::screenHeight);
 }
 
 bool Application::HandleEvents() {
@@ -153,10 +150,10 @@ bool Application::HandleEvents() {
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_EVENT_QUIT) return false;
         if (event.type == SDL_EVENT_WINDOW_RESIZED) {
-            render::screenWidth = event.window.data1;
-            render::screenHeight = event.window.data2;
-            glViewport(0, 0, render::screenWidth, render::screenHeight);
-            camera.changeAspectRatio(float(render::screenWidth) / float(render::screenHeight));
+            int w = event.window.data1;
+            int h = event.window.data2;
+            glViewport(0, 0, w, h);
+            camera.resize(event.window.data1, event.window.data2);
         }
         else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
             if (event.button.button == SDL_BUTTON_LEFT) {
@@ -167,12 +164,21 @@ bool Application::HandleEvents() {
         if (!captureMouse) continue;
         camera.HandleEvent(event, captureMouse);
         if (event.type == SDL_EVENT_KEY_DOWN) {
+            if (event.key.repeat) continue;
             if (event.key.key == SDLK_ESCAPE) return false;
-            if (event.key.key == SDLK_F5) debugRenderer->switchEnabled();
-            if (event.key.key == SDLK_F4) worldRenderer.switchWireframeRendering();
-            if (event.key.key == SDLK_B) {
+            else if (event.key.key == SDLK_F5) debugRenderer->switchEnabled();
+            else if (event.key.key == SDLK_F4) worldRenderer.switchWireframeRendering();
+            else if (event.key.key == SDLK_B) {
                 captureMouse = !captureMouse;
                 SDL_SetWindowRelativeMouseMode(Window, captureMouse);
+            }
+            else if (event.key.key == SDLK_C) {
+                camera.changeFOV(camera.getFOV() / 4);
+            }
+        }
+        else if (event.type == SDL_EVENT_KEY_UP) {
+            if (event.key.key == SDLK_C) {
+                camera.changeFOV(camera.getFOV() * 4);
             }
         }
     }
@@ -182,7 +188,7 @@ bool Application::HandleEvents() {
 
 void Application::Render() {
     // Draw
-    worldRenderer.render(world, camera);
+    worldRenderer.render();
 }
 
 Application::~Application() {

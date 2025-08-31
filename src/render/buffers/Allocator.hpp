@@ -32,20 +32,20 @@ class Allocator {
    private:
     std::list<MemoryBlock> memory_blocks;
     std::vector<std::list<MemoryBlock>::iterator> allocations;
-    GLuint buffer;
+    GLuint buffer = 0;
     u64 capacity;
     u64 used_memory;
     void* mapped_ptr;
     bool is_mapped;
     GLsync fence;
 
-    static constexpr u64 INITIAL_CAPACITY = 1024 * 1024;  // 1mb
+    static constexpr u64 INITIAL_CAPACITY = 1024 * 1024 * 32;  // 1mb
     static constexpr int ALIGNMENT = 256;
     static constexpr GLbitfield BUFFER_FLAGS =
-        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT |
+        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
         GL_DYNAMIC_STORAGE_BIT;
     static constexpr GLbitfield MAP_FLAGS =
-        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT |
+        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
         GL_MAP_FLUSH_EXPLICIT_BIT;
 
    public:
@@ -75,7 +75,7 @@ class Allocator {
     }
 
     // Flushes any pending operations and ensures GPU visibility
-    void sync() {
+    void flush() {
         if (fence) {
             glClientWaitSync(fence, 0, GL_TIMEOUT_IGNORED);
             glDeleteSync(fence);
@@ -228,6 +228,8 @@ class Allocator {
             glUnmapNamedBuffer(buffer);
             is_mapped = false;
         }
+
+        std::cout << "Resizing to " << new_size << std::endl;
 
         // Create new buffer
         GLuint new_buffer;

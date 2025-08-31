@@ -1,6 +1,8 @@
 #pragma once
 
-#include <unordered_map>
+#include <map>
+#include <shared_mutex>
+#include <mutex>
 
 #include "Chunk.h"
 #include "globals.hpp"
@@ -12,13 +14,15 @@ public:
     //chunks[z][x], 2*VIEW_DISTANCE chunks in each side
     //Using deque because of O(1) index search, O(1) insertion in each side (like when moving frontwards or backwards)
     // std::deque<std::deque<std::array<Chunk, WORLD_HEIGHT / Chunk::HEIGHT>>> chunks;
-    std::unordered_map<size_t, Chunk> chunks;
+    std::map<size_t, Chunk> chunks;
+    mutable std::shared_mutex chunks_mutex;
 
-    std::array<std::unordered_map<size_t, LowDetailChunk>, LOD_LEVELS> LODs;
+    std::array<std::map<size_t, LowDetailChunk>, LOD_LEVELS> LODs;
 
     static constexpr float DAY_DURATION_SEC = 1.0f;
 
     Chunk* getChunk(int x, int z) {
+        std::unique_lock guard(chunks_mutex);
         auto it = chunks.find(Chunk::getId(x, z));
         if (it == chunks.end()) {
             //cannot find, generate
@@ -28,6 +32,7 @@ public:
     }
 
     Chunk const* getChunk(int x, int z) const {
+        std::shared_lock guard(chunks_mutex);
         auto it = chunks.find(Chunk::getId(x, z));
         if (it == chunks.end()) {
             return nullptr;
@@ -36,6 +41,7 @@ public:
     }
 
     LowDetailChunk const* getLowDetailChunk(int x, int z, int LOD) const {
+        std::shared_lock guard(chunks_mutex);
         auto& lowDetailedChunks = LODs[LOD - 1];
         auto it = lowDetailedChunks.find(Chunk::getId(x, z));
         if (it == lowDetailedChunks.end()) return nullptr;
@@ -43,6 +49,7 @@ public:
     }
 
     LowDetailChunk* getLowDetailChunk(int x, int z, int LOD) {
+        std::unique_lock guard(chunks_mutex);
         auto& lowDetailedChunks = LODs[LOD - 1];
         auto it = lowDetailedChunks.find(Chunk::getId(x, z));
         if (it == lowDetailedChunks.end()) {

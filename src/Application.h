@@ -1,5 +1,4 @@
-#ifndef APPLICATION_H
-#define APPLICATION_H
+#pragma once
 
 #include <SDL3/SDL.h>
 
@@ -17,12 +16,17 @@ public:
     ~Application();
 
 private:
+
+    static constexpr int w = 800;
+    static constexpr int h = 600;
+
+
     SDL_Window* Window{};
     SDL_GLContext GLContext{};
     debug::DebugRenderer* debugRenderer{};
     Camera camera;
-    WorldRenderer worldRenderer;
     World world;
+    WorldRenderer worldRenderer{world, camera};
     bool captureMouse = false;
     void Init();
 
@@ -32,5 +36,3 @@ private:
 
     void Render();
 };
-
-#endif //APPLICATION_H
