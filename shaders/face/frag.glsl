@@ -1,7 +1,7 @@
 #version 460 core
 
-in vec3 gTexCoord;
-in vec3 gFaceNormal;
+layout(location = 0) in vec3 gFaceNormal;
+layout(location = 1) in vec3 gTexCoord;
 
 out vec4 FragColor;
 uniform sampler2DArray atlasTexture;

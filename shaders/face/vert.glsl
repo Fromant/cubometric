@@ -1,4 +1,4 @@
-#version 440 core
+#version 460 core
 layout(location = 0) in int aPos;
 layout(location = 1) in int aPos1;
 

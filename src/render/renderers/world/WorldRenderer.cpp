@@ -44,7 +44,7 @@ void WorldRenderer::init() {
 
     do_mesh = true;
 
-    static constexpr int MESH_WORKERS_COUNT = 1;
+    static constexpr int MESH_WORKERS_COUNT = 16;
 
     //create mesh loop thread
     for (int i = 0; i < MESH_WORKERS_COUNT; i++) {

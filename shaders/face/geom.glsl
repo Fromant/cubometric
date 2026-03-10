@@ -3,11 +3,11 @@
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 
-in vec3 vWorldPos[];
-in vec3 TexCoord[];
+layout(location = 1) in vec3 vWorldPos[];
+layout(location = 0) in vec3 TexCoord[];
 
-out vec3 gFaceNormal;
-out vec3 gTexCoord;
+layout(location = 0) out vec3 gFaceNormal;
+layout(location = 1) out vec3 gTexCoord;
 
 void main() {
     vec3 edge1 = vWorldPos[1] - vWorldPos[0];

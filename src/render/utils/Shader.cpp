@@ -5,7 +5,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-#include <glad/glad.h>
+
+#include "glad/glad.h"
 
 Shader::Shader(const char* vertPath, const char* fragPath, const char* geomPath) {
     const auto vertex = LoadFile(vertPath);

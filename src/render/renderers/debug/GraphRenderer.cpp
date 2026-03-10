@@ -68,7 +68,7 @@ namespace debug {
         glBindVertexArray(VAO);
 
         // Draw all lines at once:
-        glLineWidth(windowWidth * (vertices[2].x - vertices[0].x) / 2);
+        glLineWidth(std::min(1.0f, windowWidth * (vertices[2].x - vertices[0].x) / 2));
         glDrawArrays(GL_LINES, 0, vertices.size());
 
         glBindVertexArray(0);
