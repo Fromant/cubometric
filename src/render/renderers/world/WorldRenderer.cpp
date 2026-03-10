@@ -133,21 +133,21 @@ void WorldRenderer::renderChunk(
     // buffer->notifySubmitted();
 }
 
-void WorldRenderer::meshLoop() {
+void WorldRenderer::meshLoop(WorldRenderer *const t) {
     ChunkMesher m;
 
     // glm::ivec2 coords;
 
     std::vector<glm::ivec2> coords{5};
 
-    while (do_mesh) {
-        while (chunkMeshQueue_.pop_bulk(coords)) {
+    while (t->do_mesh) {
+        while (t->chunkMeshQueue_.pop_bulk(coords)) {
             for (const auto& coord : coords) {
-                m.update(world, coord, *bufferPool);
-                chunkMeshQueue_.clear_flag(coord);
+                m.update(t->world, coord, *t->bufferPool);
+                t->chunkMeshQueue_.clear_flag(coord);
             }
         }
-        bufferPool->flush();
+        t->bufferPool->flush();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
