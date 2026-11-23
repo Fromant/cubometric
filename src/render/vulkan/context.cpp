@@ -135,6 +135,13 @@ Context::Context (bool validation, const std::vector<std::string>& instanceExten
     // Note: the debug messenger lives in the instance pNext chain only; it
     // receives device-level messages as well.
 
+    // Wireframe rendering needs non-solid fill modes.
+    vk::PhysicalDeviceFeatures features{};
+    if (m_physicalDevice.getFeatures ().fillModeNonSolid) {
+        features.fillModeNonSolid = vk::True;
+        deviceInfo.pEnabledFeatures = &features;
+    }
+
     m_device = vk::raii::Device (m_physicalDevice, deviceInfo);
     m_queue = vk::raii::Queue (m_device, m_graphicsFamily, 0);
 }

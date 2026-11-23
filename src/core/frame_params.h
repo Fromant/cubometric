@@ -5,18 +5,25 @@
 #include <cstdint>
 #include <mutex>
 
+#include <glm/glm.hpp>
+
+#include "core/frustum.h"
+
 namespace ih::core {
 
 // Per-frame state pushed from the event thread to the render thread.
-// M0 carries the window size only; camera and input state join here later.
+// Latest-wins: intermediate updates are coalesced.
 struct FrameParams {
     uint32_t width = 0;
     uint32_t height = 0;
+    glm::vec3 cameraPos{0.0f};
+    glm::mat4 viewProj{1.0f};
+    Frustum frustum{};
+    int renderDistance = 8;
+    bool wireframe = false;
 };
 
 // Single-producer / single-consumer, latest-wins queue.
-// The consumer drains at most one value per poll; intermediate updates
-// are coalesced, which is exactly what resize events need.
 class FrameParamsQueue {
 public:
     void post (const FrameParams& params) {

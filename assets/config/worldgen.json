@@ -1,0 +1,14 @@
+{
+  "seed": 1337,
+  "scale": 0.01,
+  "baseHeight": 64,
+  "amplitude": 48,
+  "octaves": 6,
+  "persistence": 0.5,
+  "lacunarity": 2.0,
+  "layers": [
+    { "block": "grass", "depth": 1 },
+    { "block": "dirt", "depth": 4 },
+    { "block": "stone", "depth": -1 }
+  ]
+}

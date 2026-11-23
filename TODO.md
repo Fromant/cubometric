@@ -1,57 +1,33 @@
 # IndustrialHard project
 
-- [x] Move to mappedbufferpool in world rendering
-- [x] Draw debug info (also redo debugDrawer to screenSpace coords `[-1; 1]`)
-- [ ] Multithreading (draw thread, worldgen thread, mesher thread)
-- [ ] Physics engine, world updates, input system
-- [ ] Block model loadings
-- [ ] Add items
-- [ ] Add entities(?) (separate buffer tho 100%)
-- [ ] Delete old files, make nice-looking files structure. Document it maybe
-- [ ] Mesh update worker
+## Vulkan migration (done)
+- [x] Window + swapchain with resize, validation layers
+- [x] Render thread owns all Vulkan objects; event/render thread split
+- [x] Arena-suballocated GPU buffer (one vertex+index buffer for all chunk meshes)
+- [x] GPU upload ring (frame-in-flight slots), ingest budget (64 meshes/frame)
+- [x] Block texture array (CPU mip chain, sRGB)
+- [x] Greedy mesher (whole chunk, ≤16-bit index limit)
+- [x] Perlin noise worldgen + layered block config (`assets/config/worldgen.json`)
+- [x] Config-driven rendering (chunks, render distance, sun, camera, textures)
+- [x] Wireframe toggle (F4)
 
-# Rendering
+## Next / open
+- [ ] Sky rendering (renderer, shader, atlas — currently none)
+- [ ] Shadow map (or another light source)
+- [ ] Baked light into vertices + ambient occlusion
+- [ ] Sky-lit/sun-lit ground alignment (sync sun and ground sun — done for render dir, needs lighting)
+- [ ] Mesh update worker (ingest currently happens on the render thread — defers GPU upload)
+- [ ] Frame-time debug graph (F5)
+- [ ] Items / entities (separate pipeline; none in tree yet)
+- [ ] Physics engine + world updates (none in tree yet)
+- [ ] Item renderer (none in tree yet)
+- [ ] Entity renderer (none in tree yet)
 
-- [x] Binary voxels
-- [x] by-face rendering
-- [x] fix invalid value error
-- [x] merge chunk facing buffers into one bigger buffer
-- [x] debug Wireframe rendering
-- [x] Move to 32x32x32 chunks
-- [x] better world structuring
-- [x] switch texturing to texture arrays instead of textures
-- [x] Add diffuse lightning
-- [X] Greedy mesher
-- [x] Procedural sky
-- [x] Everything to one gpu buffer
-- [ ] Sync sun and ground sun
-- [ ] make greedChunkFaces just one large vector
-- [ ] draw new textures
-- [ ] LODs
-- [ ] ShadowMap (partial?)
-- [ ] Bloom
+## World
+- [ ] Mesh update worker (see above)
 - [ ] Chunk border rendering
-- [ ] Add baked lightning into vertices (for other light sources and ambient occlusion)
-- [ ] Switch to vulkan????
-- [ ] Rewrite memory allocator to save on buffer switches.
-- [ ] Make a lot debug info nice looking and possible to easy add and delete.
-- [ ] Add pixel font rendering
-- [ ] Entity renderer
-- [ ] Item renderer
+- [ ] LODs
 
-# Debug
-
-- [x] Add fps counter in console
-
-# Worldgen
-
-- [x] Simple cube
-- [x] y=sin(x+z)
-- [x] Perlin noise
-
-# Game
-
-# Documentation
-
-- Document game concept, game stages, main gameplay ideas
-- Document game realisation for open source
+## Docs
+- [ ] Document game concept, game stages, main gameplay ideas
+- [ ] Document game realisation for open source

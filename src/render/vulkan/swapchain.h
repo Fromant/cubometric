@@ -21,7 +21,9 @@ public:
 
     // Frame cycle. beginFrame returns false when the swapchain went
     // out-of-date and was recreated; the caller skips that frame.
+    // Uploads are recorded between beginFrame and beginRenderPass.
     bool beginFrame (uint32_t frame);
+    void beginRenderPass (uint32_t frame);
     void endFrame (uint32_t frame);
 
     vk::raii::CommandBuffer& commandBuffer (uint32_t frame) { return m_commandBuffers[frame]; }

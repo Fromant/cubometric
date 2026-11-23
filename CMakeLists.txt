@@ -65,7 +65,7 @@ FetchContent_MakeAvailable(SDL3)
 # --- Shaders: GLSL -> SPIR-V at build time, via the SDK glslangValidator ---
 set(GLSLANG_VALIDATOR ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE})
 set(SHADER_OUT_DIR ${CMAKE_BINARY_DIR}/shaders)
-set(SHADER_NAMES triangle)
+set(SHADER_NAMES world)
 set(SHADER_STAGES vert frag)
 set(SPIRV_OUTPUTS)
 foreach (shader_name IN LISTS SHADER_NAMES)
@@ -93,12 +93,27 @@ add_executable (${PROJECT_NAME}
         src/core/log.cpp
         src/core/check.h
         src/core/frame_params.h
+        src/core/config.h
+        src/core/config.cpp
+        src/core/frustum.h
+        src/core/queue.h
 
         src/platform/window.h
         src/platform/window.cpp
 
         src/app/application.h
         src/app/application.cpp
+        src/app/camera.h
+        src/app/camera.cpp
+
+        src/world/chunk.h
+        src/world/noise.h
+        src/world/worldgen.h
+        src/world/worldgen.cpp
+        src/world/mesher.h
+        src/world/mesher.cpp
+        src/world/world.h
+        src/world/world.cpp
 
         src/render/render_thread.h
         src/render/render_thread.cpp
@@ -110,9 +125,13 @@ add_executable (${PROJECT_NAME}
         src/render/vulkan/buffer.h
         src/render/vulkan/buffer.cpp
         src/render/vulkan/shader.h
+        src/render/vulkan/texture_array.h
+        src/render/vulkan/texture_array.cpp
+        src/render/vulkan/arena.h
+        src/render/vulkan/arena.cpp
         src/render/renderers/renderer.h
-        src/render/renderers/triangle_renderer.h
-        src/render/renderers/triangle_renderer.cpp
+        src/render/renderers/world_renderer.h
+        src/render/renderers/world_renderer.cpp
 
         3rdparty/compile.cpp
 )

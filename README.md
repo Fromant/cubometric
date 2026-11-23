@@ -1,39 +1,33 @@
 # IndustrialHard = Minecraft and Factorio parody
 
-IndustrialHard would be about: 
-- Building massive buildings, exploring and survive wild realistic world
-- Building your factory to Flying out to moon to accomplish your child dream (end goal for now)
+IndustrialHard would be about:
+- Building massive buildings, exploring and surviving a realistic world
+- Building your factory to fly out to the moon to accomplish your child dream (end goal for now)
 
-Right now it's unplayable stone simulator written in CPP+OpenGL+GLAD+SDL+glm+...
+Right now it's an unplayable stone simulator written in C++ (Vulkan).
 
 # Controls:
-- WASD movement
-- F5 to open frame time graph
+- WASD + mouse movement
 - F4 to enable wireframe rendering
-- B to switch mouse capturing
-- LMB to capture mouse
-- C for zoom
-- '+' and '-' - control chunk render distance
+- LMB / B to capture mouse
+- C / +/- (future) to zoom and control chunk render distance
+- ESC to quit
 
 # Compile & run:
-- Make sure vcpkg is installed and a enviroment variables are set: `VCPKG_ROOT` (check via `$ENV:VCPKG_ROOT`). 
-- Default vcpkg triplets can be set in enviroment variables (`VCPKG_DEFAULT_TRIPLET` and `VCPKG_DEFAULT_HOST_TRIPLET`)
-- If needed, change used triplet in CMakePresets.json (`VCPKG_TARGET_TRIPLET`) 
-- vcpkg cmake toolchain will be used automaticallly
-- build with vscode Cmake tools (using CMakePresets)
-- Before running, copy SDL3.dll from build/type/_deps/sdl3-build or download it (same version as SDL3 in deps)
-- Run application inside build folder
+1. Install the Vulkan SDK (includes glslangValidator) and a w64devkit/Strawberry C++ toolchain.
+2. CMake (≥3.21) + Ninja:
+   `cmake -B build -G Ninja && cmake --build build`
+   (or use the CMake tools in VS Code against `build/`)
+3. Run `build/IndustrialHard.exe` **from inside the build folder** (relative `assets/` and `shaders/` paths).
 
-# Dependencies:
-- OpenGL 4.4+
-- SDL 3.2.16
-- glad
-- glm
+Dependencies (all auto-fetched except Vulkan):
+- Vulkan SDK (system) + glslangValidator
 - nlohmann-json 3.12.0
-- 
+- SDL3 3.4.2
+- glm 1.0.3
 
-# Texure units:
-- 0 - main 16x16x2048 2d texture array
-- 1 - 64x64 sky atlas
-
-
+# Config (game data):
+- `assets/config/render.json` — chunk size, render distance, texture tile size, mip levels, sun/ambient, camera
+- `assets/config/worldgen.json` — Perlin-based terrain (seed, scale, base height, amplitude, layers)
+- `assets/config/blocks/*.json` — block definitions (texture array layers)
+- `assets/textures/blocks/*.png` — 16x16 block texture tiles

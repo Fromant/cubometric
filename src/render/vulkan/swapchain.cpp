@@ -140,9 +140,9 @@ void Swapchain::rebuild (uint32_t width, uint32_t height) {
     }
     m_width = extent.width;
     m_height = extent.height;
-
     uint32_t imageCount = capabilities.minImageCount + 1;
     if (capabilities.maxImageCount > 0) imageCount = std::min (imageCount, capabilities.maxImageCount);
+    core::logInfo ("Swapchain: " + std::to_string (imageCount) + " images");
 
     vk::SwapchainCreateInfoKHR swapchainInfo{};
     swapchainInfo.surface = m_surface;
@@ -235,19 +235,22 @@ bool Swapchain::beginFrame (uint32_t frame) {
 
     auto& cmd = m_commandBuffers[frame];
     cmd.begin (vk::CommandBufferBeginInfo (vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+    return true;
+}
 
+void Swapchain::beginRenderPass (uint32_t frame) {
+    auto& cmd = m_commandBuffers[frame];
     std::array<vk::ClearValue, 2> clears{};
     clears[0].color = vk::ClearColorValue (std::array<float, 4>{0.02f, 0.02f, 0.04f, 1.0f});
     clears[1].depthStencil = vk::ClearDepthStencilValue (1.0f, 0);
 
     vk::RenderPassBeginInfo renderPassInfo{};
     renderPassInfo.renderPass = m_renderPass;
-    renderPassInfo.framebuffer = m_framebuffers[index];
+    renderPassInfo.framebuffer = m_framebuffers[m_imageIndex[frame]];
     renderPassInfo.renderArea = vk::Rect2D (vk::Offset2D (0, 0), vk::Extent2D (m_width, m_height));
     renderPassInfo.clearValueCount = static_cast<uint32_t> (clears.size ());
     renderPassInfo.pClearValues = clears.data ();
     cmd.beginRenderPass (renderPassInfo, vk::SubpassContents::eInline);
-    return true;
 }
 
 void Swapchain::endFrame (uint32_t frame) {

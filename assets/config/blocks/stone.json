@@ -1,0 +1,5 @@
+{
+  "name": "stone",
+  "solid": true,
+  "textures": { "all": "stone" }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "dirt",
+  "solid": true,
+  "textures": { "all": "dirt" }
+}
